@@ -2,7 +2,7 @@
 """RLC-family executable satire: family JSON -> AnalogIR -> solve -> family report."""
 
 from __future__ import annotations
-import argparse, cmath, json, math
+import argparse, cmath, json, math, sys
 from pathlib import Path
 
 VERSION = "RLC-FAMILY-SIM-0.1"
@@ -51,14 +51,23 @@ def child_resistance(raw, topology):
     raise ScenarioError("топология_детей: use 'последовательно' or 'параллельно'")
 
 
-def load(path):
+def load_text(text):
     try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as e:
+        data = json.loads(text)
+    except json.JSONDecodeError as e:
         raise ScenarioError(str(e)) from e
     if not isinstance(data, dict):
         raise ScenarioError("scenario root must be an object")
     return data
+
+
+def load(path):
+    if str(path) == "-":
+        return load_text(sys.stdin.read())
+    try:
+        return load_text(Path(path).read_text(encoding="utf-8"))
+    except OSError as e:
+        raise ScenarioError(str(e)) from e
 
 
 def compile_scenario(s):
@@ -313,7 +322,7 @@ def write_outputs(out,ir,result):
 
 def main():
     p=argparse.ArgumentParser(description="Family terms -> analog model -> family interpretation")
-    p.add_argument("scenario",type=Path)
+    p.add_argument("scenario", help="JSON file path, or '-' to read compiled chat scenario from stdin")
     p.add_argument("--out",type=Path,default=Path("out"))
     p.add_argument("--json",action="store_true")
     a=p.parse_args()
