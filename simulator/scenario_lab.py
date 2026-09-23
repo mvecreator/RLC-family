@@ -146,6 +146,64 @@ def suite():
     rows.append(run_case("finance_healthy_relation", finance_healthy, timeline([], 30)))
     rows.append(run_case("finance_stressed_relation", finance_stressed, timeline([], 30)))
 
+    support_base = family(
+        "После ссоры и внешнего разговора",
+        tension=0.45, memory=0.28, quality=0.72,
+        amp=1.05, background=0.18, dump=0.25, match=0.50,
+    )
+    support_argument = {
+        "id": "argument-2", "день": 1, "длительность_дней": 0.4,
+        "добавить": {
+            "отношения.напряженность": 0.28,
+            "связь.усиление_эмоций": 0.20
+        },
+        "импульс_памяти": 0.07
+    }
+    helpful = {
+        "id": "helpful-support", "день": 1.5, "длительность_дней": 0.7,
+        "установить": {
+            "связь.сброс_через_антенну": 0.90,
+            "связь.согласование_собеседника": 0.95,
+            "связь.качество_проводника": 0.82
+        }
+    }
+    stoking = {
+        "id": "stoking-support", "день": 1.5, "длительность_дней": 0.7,
+        "добавить": {
+            "связь.внешний_фон": 0.45,
+            "связь.усиление_антенны": 0.25,
+            "связь.усиление_эмоций": 0.25
+        },
+        "установить": {
+            "связь.фильтр_критического_мышления": 0.20
+        }
+    }
+    rows.append(run_case("support_helpful", support_base, timeline([support_argument, helpful])))
+    rows.append(run_case("support_stoking", support_base, timeline([support_argument, stoking])))
+
+    dark = family(
+        "Дефицит и слабый денежный свет",
+        tension=0.40, memory=0.25, quality=0.75,
+        incomes=[3500], mortgage=1500, base_expenses=2200,
+        other_expenses=500, reserve=2500,
+    )
+    dark["финансы"].update({
+        "свет_возможностей": 0.05,
+        "сопряжение_денежного_луча": 0.30,
+        "потери_оптики": 0.20,
+        "усиление_бизнеса": 1.10,
+        "доступный_рынок_в_месяц": 1500
+    })
+    bright = copy.deepcopy(dark)
+    bright["название"] = "Дефицит и хорошо сопряжённый денежный свет"
+    bright["финансы"].update({
+        "свет_возможностей": 0.85,
+        "сопряжение_денежного_луча": 0.85,
+        "усиление_бизнеса": 1.20
+    })
+    rows.append(run_case("money_light_dark", dark, timeline([], 30)))
+    rows.append(run_case("money_light_bright", bright, timeline([], 30)))
+
     return rows
 
 
@@ -167,6 +225,14 @@ def checks(rows):
         "financial_stress_couples_into_family_memory":
             by["finance_stressed_relation"]["final_memory"] >
             by["finance_healthy_relation"]["final_memory"],
+        "helpful_support_beats_stoking_support":
+            abs(by["support_helpful"]["peak_interaction_current"]) <
+            abs(by["support_stoking"]["peak_interaction_current"])
+            and by["support_helpful"]["final_memory"] <
+            by["support_stoking"]["final_memory"],
+        "money_light_reduces_financially_coupled_memory":
+            by["money_light_bright"]["final_memory"] <
+            by["money_light_dark"]["final_memory"],
     }
 
 
