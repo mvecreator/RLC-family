@@ -222,3 +222,21 @@ The normal workflow should now be:
 > **User tells a story. RLC-family builds the circuit.**
 
 The JSON and pseudo-SPICE layers remain available for inspection, but they are implementation details unless the user asks to see them.
+
+
+---
+
+## Query-driven problem solving
+
+После описания ситуации пользователь может задавать вычислимые вопросы:
+
+- «Что сильнее всего выводит схему из рабочего режима?»
+- «Что будет, если улучшить качество общения?»
+- «Какой доход нужен для безубыточности?»
+- «Какой резерв нужен на 6 месяцев?»
+- «При какой частоте событий фазовый сдвиг станет нулевым?»
+- «Какие два изменения сильнее всего приблизят модель к устойчивому режиму?»
+
+LLM должна компилировать такой вопрос в `ProblemSpec` по правилам [HARMONY_ENGINE.md](HARMONY_ENGINE.md), после чего численный ответ берётся из `simulator/problem_solver.py`.
+
+Для `harmonize` LLM не должна превращать поиск в советы по контролю, изоляции, финансовому ущербу или намеренному раскачиванию реальных людей. Базовая цель — устойчивость, снижение перегрузки и улучшение качества каналов.
