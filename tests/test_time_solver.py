@@ -46,6 +46,82 @@ class TimeSolverTests(unittest.TestCase):
         b = ts.simulate_timeline(self.scenario, event)
         self.assertGreater(abs(b["summary"]["peak_interaction_current"]), abs(a["summary"]["peak_interaction_current"]) + 1e-5)
 
+    def test_talk_after_argument_beats_silence_on_memory(self):
+        base = copy.deepcopy(self.scenario)
+        base["отношения"]["напряженность"] = 0.40
+        base["отношения"]["накопленная_память"] = 0.25
+        base["связь"]["качество_проводника"] = 0.75
+        base["связь"]["усиление_эмоций"] = 1.05
+
+        argument = {
+            "id": "argument",
+            "день": 1,
+            "длительность_дней": 0.4,
+            "добавить": {
+                "отношения.напряженность": 0.28,
+                "связь.усиление_эмоций": 0.20
+            },
+            "импульс_памяти": 0.08
+        }
+
+        silence = {
+            "id": "silence",
+            "день": 1.4,
+            "длительность_дней": 2.0,
+            "установить": {"связь.качество_проводника": 0.25}
+        }
+
+        talk = {
+            "id": "talk",
+            "день": 1.4,
+            "длительность_дней": 0.5,
+            "установить": {
+                "связь.качество_проводника": 0.90,
+                "связь.сброс_через_антенну": 0.80,
+                "связь.согласование_собеседника": 0.90
+            }
+        }
+
+        silence_result = ts.simulate_timeline(
+            base,
+            {"моделирование":{"дней":7,"шаг_дней":0.01,"выборка_дней":0.05},
+             "события":[argument, silence]},
+        )
+        talk_result = ts.simulate_timeline(
+            base,
+            {"моделирование":{"дней":7,"шаг_дней":0.01,"выборка_дней":0.05},
+             "события":[argument, talk]},
+        )
+
+        self.assertLess(
+            talk_result["summary"]["final_memory"],
+            silence_result["summary"]["final_memory"],
+        )
+
+    def test_adolescent_nonlinearity_increases_memory_under_high_tension(self):
+        low = copy.deepcopy(self.scenario)
+        high = copy.deepcopy(self.scenario)
+        for scenario in (low, high):
+            scenario["отношения"]["напряженность"] = 0.72
+            scenario["отношения"]["накопленная_память"] = 0.35
+            scenario["отношения"]["сопротивление_детей"] = [0.40]
+            scenario["связь"]["качество_проводника"] = 0.70
+            scenario["связь"]["усиление_эмоций"] = 1.15
+        low["отношения"]["подростковая_нелинейность"] = 0.0
+        high["отношения"]["подростковая_нелинейность"] = 0.90
+
+        timeline = {
+            "моделирование":{"дней":7,"шаг_дней":0.01,"выборка_дней":0.05},
+            "события":[]
+        }
+        low_result = ts.simulate_timeline(low, timeline)
+        high_result = ts.simulate_timeline(high, timeline)
+
+        self.assertGreater(
+            high_result["summary"]["final_memory"],
+            low_result["summary"]["final_memory"],
+        )
+
     def test_zero_duration_set_does_not_persist(self):
         tl = {"моделирование":{"дней":1,"шаг_дней":0.01,"выборка_дней":0.2},
               "события":[{"день":0.5,"установить":{"связь.внешний_фон":1.0}}]}
