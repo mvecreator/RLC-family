@@ -52,6 +52,11 @@ class RLCFamilySimulatorTests(unittest.TestCase):
             for name in ("analog_ir.json","result.json","circuit.net","report.md"):
                 self.assertTrue((Path(td)/name).exists())
 
+    def test_load_text_for_chat(self):
+        raw = json.dumps(self.scenario, ensure_ascii=False)
+        loaded = sim.load_text(raw)
+        self.assertEqual(loaded["название"], self.scenario["название"])
+
     def test_invalid_probability(self):
         s=json.loads(json.dumps(self.scenario))
         s["связь"]["внешний_фон"]=1.5
