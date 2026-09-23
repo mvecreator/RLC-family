@@ -230,7 +230,7 @@ def _apply_impulses(state, items):
     return q, current, memory, reserve, debt
 
 
-def _sample(t, state, base, events):
+def _sample(t, state, base, events, cfg):
     q, current, memory, reserve, debt = state
     s = scenario_at(base, events, t, memory)
     k = _coefficients(s)
@@ -240,7 +240,8 @@ def _sample(t, state, base, events):
     phase = -math.degrees(math.atan2(reactance, R))
     p_rad = current * current * k["Rrad"]
     financial_stress, monthly_income, monthly_load = _financial_stress(k["ir"], reserve)
-    effective_drive = k["drive"] * (1.0 + 0.25 * financial_stress)
+    financial_drive_gain = float(cfg.get("financial_drive_gain", 0.25))
+    effective_drive = k["drive"] * (1.0 + financial_drive_gain * financial_stress)
     return {
         "day": round(t, 8),
         "charge": q,
@@ -355,7 +356,7 @@ def simulate_timeline(base_scenario, timeline):
     if 0.0 in impulse_map:
         state = _apply_impulses(state, impulse_map[0.0])
 
-    samples = [_sample(0.0, state, initial, events)]
+    samples = [_sample(0.0, state, initial, events, cfg)]
     event_log = []
     for e in events:
         event_log.append({
@@ -381,7 +382,7 @@ def simulate_timeline(base_scenario, timeline):
                 applied_impulse_times.add(impulse_time)
         t = t_next
         if t + 1e-12 >= next_sample or t + 1e-12 >= days:
-            samples.append(_sample(t, state, initial, events))
+            samples.append(_sample(t, state, initial, events, cfg))
             while next_sample <= t + 1e-12:
                 next_sample += sample_every
 
@@ -392,7 +393,7 @@ def simulate_timeline(base_scenario, timeline):
         "equations": [
             "dq/dt = i",
             "L*di/dt = V(t) - R(t)*i - q/C(t)",
-            "dm/dt = a*|V| + b*|i| - lambda*m - k_rad*P_rad",
+            "dm/dt = excitation + channel_stress + nonlinear_stress + financial_stress - relaxation - k_rad*P_rad",
             "dReserve/dt = (income(t) - load(t))/days_per_month + impulses",
             "dDebt/dt = annual_rate/365*Debt - mortgage/days_per_month",
         ],
@@ -436,6 +437,7 @@ def report(result):
 | Минимальный резерв | {s['minimum_reserve']:.2f} |
 | Финальный резерв | {s['final_reserve']:.2f} |
 | Финальный ипотечный долг | {s['final_mortgage_debt']:.2f} |
+| Пиковый финансовый стресс | {s['peak_financial_stress']:.5f} |
 
 > Это численный результат условной RLC-family модели, а не психологический или финансовый прогноз.
 """
@@ -446,7 +448,7 @@ def write_outputs(out, result):
     out.mkdir(parents=True, exist_ok=True)
     (out / "timeline_result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (out / "timeline_report.md").write_text(report(result), encoding="utf-8")
-    keys = ["day","interaction_current","memory","reserve","mortgage_debt","drive","phase_deg","radiated_power"]
+    keys = ["day","interaction_current","memory","reserve","mortgage_debt","drive","financial_stress","phase_deg","radiated_power"]
     rows = [",".join(keys)]
     for row in result["samples"]:
         rows.append(",".join(str(row[k]) for k in keys))
