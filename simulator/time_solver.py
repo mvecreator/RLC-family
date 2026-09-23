@@ -127,14 +127,35 @@ def _photo_income(ir):
     return min(f["market"], f["market"] * eff * f["gain"])
 
 
+def _financial_stress(ir, reserve):
+    """Bounded coupling term from cash-flow deficit and short runway.
+
+    This is an internal RLC-family convention, not a psychological measurement.
+    """
+    f = ir["finance"]
+    income = f["income"] + _photo_income(ir)
+    load = f["mortgage"] + f["base"] + f["other"]
+    if load <= 0:
+        return 0.0, income, load
+    deficit_ratio = max(0.0, (load - income) / load)
+    runway_months = max(0.0, reserve) / load
+    buffer_stress = max(0.0, min(1.0, (3.0 - runway_months) / 3.0))
+    stress = max(0.0, min(1.0, 0.70 * deficit_ratio + 0.30 * buffer_stress))
+    return stress, income, load
+
+
 def derivatives(t, state, base, events, cfg):
     q, current, memory, reserve, debt = state
     s = scenario_at(base, events, t, memory)
     k = _coefficients(s)
     ir = k["ir"]
 
+    financial_stress, monthly_income, monthly_load = _financial_stress(ir, reserve)
+    financial_drive_gain = float(cfg.get("financial_drive_gain", 0.25))
+    effective_drive = k["drive"] * (1.0 + financial_drive_gain * financial_stress)
+
     dq = current
-    di = (k["drive"] - k["R"] * current - q / k["C"]) / k["L"]
+    di = (effective_drive - k["R"] * current - q / k["C"]) / k["L"]
 
     p_rad = (current * current) * k["Rrad"]
     quality = float(s.get("связь", {}).get("качество_проводника", 0.70))
@@ -149,7 +170,8 @@ def derivatives(t, state, base, events, cfg):
     communication_relax = float(cfg.get("communication_memory_relax", 0.025))
     dump_relax = float(cfg.get("dump_memory_relax", 0.080))
 
-    excitation = max(0.0, abs(k["drive"]) - 0.35)
+    financial_memory_gain = float(cfg.get("financial_memory_gain", 0.025))
+    excitation = max(0.0, abs(effective_drive) - 0.35)
     channel_stress = (1.0 - quality) * tension
     nonlinear_stress = nonlinearity * max(0.0, tension - 0.55)
 
@@ -158,14 +180,13 @@ def derivatives(t, state, base, events, cfg):
         + current_gain * abs(current)
         + channel_stress_gain * channel_stress
         + nonlinear_memory_gain * nonlinear_stress
+        + financial_memory_gain * financial_stress
         - memory_decay * memory
         - communication_relax * quality * memory
         - dump_relax * p_rad
     )
 
     f = ir["finance"]
-    monthly_income = f["income"] + _photo_income(ir)
-    monthly_load = f["mortgage"] + f["base"] + f["other"]
     dreserve = (monthly_income - monthly_load) / DAYS_PER_MONTH
 
     daily_rate = f["annual_rate"] / 365.2425
@@ -218,9 +239,8 @@ def _sample(t, state, base, events):
     reactance = omega * L - 1 / (omega * C)
     phase = -math.degrees(math.atan2(reactance, R))
     p_rad = current * current * k["Rrad"]
-    f = k["ir"]["finance"]
-    monthly_income = f["income"] + _photo_income(k["ir"])
-    monthly_load = f["mortgage"] + f["base"] + f["other"]
+    financial_stress, monthly_income, monthly_load = _financial_stress(k["ir"], reserve)
+    effective_drive = k["drive"] * (1.0 + 0.25 * financial_stress)
     return {
         "day": round(t, 8),
         "charge": q,
@@ -228,7 +248,9 @@ def _sample(t, state, base, events):
         "memory": memory,
         "reserve": reserve,
         "mortgage_debt": debt,
-        "drive": k["drive"],
+        "drive": effective_drive,
+        "base_drive": k["drive"],
+        "financial_stress": financial_stress,
         "R": R,
         "L": L,
         "C": C,
@@ -255,6 +277,7 @@ def summarize(samples, events):
     peak_i_idx = max(range(len(samples)), key=lambda i: abs(samples[i]["interaction_current"]))
     peak_m_idx = max(range(len(samples)), key=lambda i: samples[i]["memory"])
     min_res_idx = min(range(len(samples)), key=lambda i: samples[i]["reserve"])
+    peak_fin_idx = max(range(len(samples)), key=lambda i: samples[i]["financial_stress"])
     final = samples[-1]
     recovery = _crossing_recovery(samples, peak_i_idx, "interaction_current")
     return {
@@ -268,6 +291,8 @@ def summarize(samples, events):
         "final_memory": final["memory"],
         "final_reserve": final["reserve"],
         "final_mortgage_debt": final["mortgage_debt"],
+        "peak_financial_stress": samples[peak_fin_idx]["financial_stress"],
+        "peak_financial_stress_day": samples[peak_fin_idx]["day"],
         "event_count": len(events),
     }
 
