@@ -137,12 +137,31 @@ def derivatives(t, state, base, events, cfg):
     di = (k["drive"] - k["R"] * current - q / k["C"]) / k["L"]
 
     p_rad = (current * current) * k["Rrad"]
+    quality = float(s.get("связь", {}).get("качество_проводника", 0.70))
+    tension = float(s.get("отношения", {}).get("напряженность", 0.50))
+    nonlinearity = float(s.get("отношения", {}).get("подростковая_нелинейность", 0.0))
+
     mem_gain = float(cfg.get("memory_gain", 0.040))
-    current_gain = float(cfg.get("current_memory_gain", 0.040))
-    memory_decay = float(cfg.get("memory_decay_per_day", 0.045))
+    current_gain = float(cfg.get("current_memory_gain", 0.020))
+    channel_stress_gain = float(cfg.get("channel_stress_gain", 0.055))
+    nonlinear_memory_gain = float(cfg.get("nonlinear_memory_gain", 0.035))
+    memory_decay = float(cfg.get("memory_decay_per_day", 0.030))
+    communication_relax = float(cfg.get("communication_memory_relax", 0.025))
     dump_relax = float(cfg.get("dump_memory_relax", 0.080))
+
     excitation = max(0.0, abs(k["drive"]) - 0.35)
-    dm = mem_gain * excitation + current_gain * abs(current) - memory_decay * memory - dump_relax * p_rad
+    channel_stress = (1.0 - quality) * tension
+    nonlinear_stress = nonlinearity * max(0.0, tension - 0.55)
+
+    dm = (
+        mem_gain * excitation
+        + current_gain * abs(current)
+        + channel_stress_gain * channel_stress
+        + nonlinear_memory_gain * nonlinear_stress
+        - memory_decay * memory
+        - communication_relax * quality * memory
+        - dump_relax * p_rad
+    )
 
     f = ir["finance"]
     monthly_income = f["income"] + _photo_income(ir)
