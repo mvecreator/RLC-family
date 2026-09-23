@@ -16,9 +16,20 @@ import math
 import sys
 from pathlib import Path
 
-from simulator import rlc_family_sim as core
+try:
+    from simulator import rlc_family_sim as core
+except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
+    import rlc_family_sim as core
 
-VERSION = "RLC-FAMILY-PROBLEM-0.1"
+VERSION = "RLC-FAMILY-PROBLEM-0.2"
+
+SAFE_HARMONIZE_DIRECTIONS = {
+    "связь.качество_проводника": "up",
+    "связь.фильтр_критического_мышления": "up",
+    "связь.сброс_через_антенну": "up",
+    "связь.согласование_собеседника": "up",
+    "связь.усиление_эмоций": "down",
+}
 
 
 def _read_json(path):
@@ -261,7 +272,27 @@ def _actions_from_problem(scenario, problem):
             values = [item["value"]]
         else:
             raise core.ScenarioError("each action requires value or values")
+        if path not in SAFE_HARMONIZE_DIRECTIONS:
+            raise core.ScenarioError(
+                f"harmonize action not in safe actionable set: {path}"
+            )
+        try:
+            baseline = float(_get(scenario, path))
+        except (KeyError, TypeError, ValueError) as e:
+            raise core.ScenarioError(
+                f"harmonize action path is not available: {path}"
+            ) from e
+        direction = SAFE_HARMONIZE_DIRECTIONS[path]
         for value in values:
+            value = float(value)
+            if direction == "up" and value < baseline:
+                raise core.ScenarioError(
+                    f"harmonize refuses destabilizing direction for {path}"
+                )
+            if direction == "down" and value > baseline:
+                raise core.ScenarioError(
+                    f"harmonize refuses destabilizing direction for {path}"
+                )
             actions.append({
                 "path": path,
                 "value": value,
