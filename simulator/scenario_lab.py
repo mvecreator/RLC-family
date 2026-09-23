@@ -131,6 +131,21 @@ def suite():
     )
     rows.append(run_case("financial_overload", deficit, timeline([], 120)))
 
+    finance_healthy = family(
+        "Одинаковые отношения, здоровые финансы",
+        tension=0.40, memory=0.25, quality=0.75,
+        incomes=[6000], mortgage=1200, base_expenses=2000,
+        other_expenses=400, reserve=15000,
+    )
+    finance_stressed = family(
+        "Одинаковые отношения, финансовый стресс",
+        tension=0.40, memory=0.25, quality=0.75,
+        incomes=[3200], mortgage=1600, base_expenses=2200,
+        other_expenses=700, reserve=1500,
+    )
+    rows.append(run_case("finance_healthy_relation", finance_healthy, timeline([], 30)))
+    rows.append(run_case("finance_stressed_relation", finance_stressed, timeline([], 30)))
+
     return rows
 
 
@@ -149,6 +164,9 @@ def checks(rows):
             by["teen_low_nonlinearity"]["final_memory"],
         "financial_overload_consumes_reserve":
             by["financial_overload"]["final_reserve"] < 5000,
+        "financial_stress_couples_into_family_memory":
+            by["finance_stressed_relation"]["final_memory"] >
+            by["finance_healthy_relation"]["final_memory"],
     }
 
 
