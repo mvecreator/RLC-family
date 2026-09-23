@@ -88,6 +88,22 @@ class RLCFamilySimulatorTests(unittest.TestCase):
         for item in ans["solution"]["best_interventions"]:
             self.assertGreater(item["improvement"], 0)
 
+    def test_harmonize_rejects_destabilizing_direction(self):
+        baseline = self.scenario["связь"]["качество_проводника"]
+        with self.assertRaises(sim.ScenarioError):
+            ps.solve_problem(
+                self.scenario,
+                {
+                    "type": "harmonize",
+                    "actions": [
+                        {
+                            "path": "связь.качество_проводника",
+                            "value": baseline - 0.1,
+                        }
+                    ],
+                },
+            )
+
     def test_invalid_probability(self):
         s=json.loads(json.dumps(self.scenario))
         s["связь"]["внешний_фон"]=1.5
