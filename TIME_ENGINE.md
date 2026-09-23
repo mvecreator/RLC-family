@@ -39,9 +39,11 @@ dq/dt = i
 L di/dt = V(t) - R(t)i - q/C(t)
 
 dm/dt =
-    a |V(t)|
-  + b |i(t)|
-  - λ m(t)
+    excitation
+  + channel_stress
+  + nonlinear_stress
+  + financial_stress
+  - memory_relaxation
   - k_rad P_rad(t)
 
 dReserve/dt =
@@ -207,3 +209,23 @@ Local development gate:
 ## Core contract
 
 > **Tell the story in time. The engine builds the differential equations, integrates them, and tells the story back with numbers.**
+
+
+## Financial coupling
+
+SIM-TIME1 implements the earlier `COUPLING1` hypothesis.
+
+A bounded internal term combines:
+
+```text
+cash-flow deficit
++
+short financial runway
+→ financial_stress ∈ [0,1]
+```
+
+This term can increase effective drive and memory accumulation.
+
+It is an internal RLC-family systems coefficient, not a measured psychological stress score.
+
+This coupling was added after scenario-lab testing showed that the first dynamic implementation produced identical relationship trajectories for healthy finances and severe financial overload.
