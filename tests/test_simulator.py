@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from simulator import rlc_family_sim as sim
+from simulator import problem_solver as ps
 
 
 class RLCFamilySimulatorTests(unittest.TestCase):
@@ -56,6 +57,36 @@ class RLCFamilySimulatorTests(unittest.TestCase):
         raw = json.dumps(self.scenario, ensure_ascii=False)
         loaded = sim.load_text(raw)
         self.assertEqual(loaded["название"], self.scenario["название"])
+
+    def test_problem_solver_resonance(self):
+        ans = ps.solve_problem(self.scenario, {"type": "solve_resonance"})
+        self.assertGreater(ans["solution"]["omega0_rad_s"], 0)
+
+    def test_problem_solver_break_even(self):
+        ans = ps.solve_problem(
+            self.scenario,
+            {"type": "solve_finance", "target": "break_even_income"},
+        )
+        required = ans["solution"]["required_explicit_income_monthly"]
+        self.assertGreaterEqual(required, 0)
+
+    def test_problem_solver_what_if(self):
+        ans = ps.solve_problem(
+            self.scenario,
+            {
+                "type": "what_if",
+                "changes": {"связь.качество_проводника": 0.90},
+            },
+        )
+        self.assertIn("violation_delta", ans["solution"])
+
+    def test_problem_solver_harmonize_never_returns_negative_improvement(self):
+        ans = ps.solve_problem(
+            self.scenario,
+            {"type": "harmonize", "max_changes": 2, "max_results": 5},
+        )
+        for item in ans["solution"]["best_interventions"]:
+            self.assertGreater(item["improvement"], 0)
 
     def test_invalid_probability(self):
         s=json.loads(json.dumps(self.scenario))
