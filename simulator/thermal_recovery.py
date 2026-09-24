@@ -242,6 +242,9 @@ def integrate_thermal(scenario, family_rows):
                     dt,
                 )
             links[key] = {
+                "link_id": key,
+                "pair_id": link.get("pair_id"),
+                "channel_kind": link.get("channel_kind", "generic"),
                 "dissipation_power_proxy": power_raw,
                 "normalized_dissipation_power": power,
                 "cooling_capacity": cooling,
@@ -305,6 +308,11 @@ def summarize_thermal(rows):
             key=lambda x: x[1],
         )
         links[key] = {
+            "link_id": key,
+            "pair_id": rows[0]["links"][key].get("pair_id"),
+            "channel_kind": rows[0]["links"][key].get(
+                "channel_kind", "generic"
+            ),
             "peak_dissipation_power_proxy": {
                 "day": peak_power[0],
                 "value": peak_power[1],
