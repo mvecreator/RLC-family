@@ -91,5 +91,29 @@ class ChannelCouplingTests(unittest.TestCase):
             }]))
 
 
+    def test_threshold_out_of_range_is_rejected(self):
+        with self.assertRaises(core.ScenarioError):
+            pm.compile_person_network(cal.base_scenario(rules=[{
+                "coupling_id": "bad-threshold",
+                "source_link_id": "work",
+                "target_link_id": "personal",
+                "source_signal": "power",
+                "target_field": "communication_quality",
+                "threshold": 1.2,
+                "gain": -0.2,
+            }]))
+
+    def test_gate_source_requires_mosfet(self):
+        with self.assertRaises(core.ScenarioError):
+            pm.compile_person_network(cal.base_scenario(rules=[{
+                "coupling_id": "bad-gate-source",
+                "source_link_id": "personal",
+                "target_link_id": "work",
+                "source_signal": "gate",
+                "target_field": "reverse_ratio",
+                "gain": 0.2,
+            }]))
+
+
 if __name__ == "__main__":
     unittest.main()
