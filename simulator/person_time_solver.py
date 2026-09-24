@@ -568,6 +568,7 @@ def _sample(t, state, scenario, base_ir, events, cfg):
             "nonlinear": bool(link.get("nonlinear", False)),
             "gate": link.get("gate"),
             "gate_semantics": link.get("gate_semantics"),
+            "reverse_ratio": link.get("reverse_ratio"),
             "delta_v": delta_v,
             "instantaneous_conductance": semi.conductance(link, delta_v),
             "power_vi_proxy": semi.power(link, v[i], v[j]),
