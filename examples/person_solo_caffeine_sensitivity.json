@@ -1,0 +1,16 @@
+{
+  "name": "CAFFEINE1 timing and dose sensitivity",
+  "half_life_hours": 5.0,
+  "reference_dose_mg": 100.0,
+  "personal_history_boundary": {
+    "historical_frequency_known": "1-2 coffees per day",
+    "current_frequency_known": "up to 3-4 coffees per week",
+    "dose_mg_per_cup_known": false,
+    "timing_relative_to_sleep_known": false
+  },
+  "sensitivity_grid": {
+    "dose_mg": [75, 100, 150],
+    "hours_before_sleep": [3, 6, 10]
+  },
+  "note": "The 100 mg reference is a sensitivity convention, not a claim about the caffeine content of the user's historical cups."
+}
