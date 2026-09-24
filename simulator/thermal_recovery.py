@@ -2,7 +2,8 @@
 """PERSON-THERM1 / LINK-THERM1 / RECOVERY-DEBT1.
 
 Post-processes PERSON-FAMILY-SAFETY1 trajectories into bounded thermal-memory
-states. Link heating uses the electrical dissipation proxy I^2 R.
+states. Link heating uses universal electrical dissipation |delta V * I|;
+for linear resistors this is exactly I^2 R.
 
 All thresholds and recovery profiles are engineering calibration hypotheses,
 not medical or relationship-outcome probabilities.
@@ -60,9 +61,16 @@ def person_cooling_capacity(scenario, pid):
 
 
 def link_power_w_proxy(link_row):
-    current = abs(float(link_row.get("current_abs_raw", 0.0)))
+    if "dissipation_power_proxy" in link_row:
+        return abs(float(link_row["dissipation_power_proxy"]))
+    if "power_vi_proxy" in link_row:
+        return abs(float(link_row["power_vi_proxy"]))
+    delta_v = link_row.get("delta_v_raw", link_row.get("delta_v"))
+    current = link_row.get("current_abs_raw", link_row.get("current_abs", 0.0))
+    if delta_v is not None:
+        return abs(float(delta_v) * float(current))
     resistance = max(0.0, float(link_row.get("R_link", 0.0)))
-    return current * current * resistance
+    return float(current) * float(current) * resistance
 
 
 def normalized_link_power(link_row):
