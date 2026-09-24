@@ -88,6 +88,79 @@ def estimate_wake_period(observations):
     }
 
 
+def estimate_sleep_architecture(observations, effective_period_hours):
+    raw = observations.get("sleep_architecture")
+    if raw is None:
+        return {
+            "available": False,
+            "requires_split_state": False,
+        }
+    if not isinstance(raw, dict):
+        raise core.ScenarioError("sleep_architecture must be object")
+
+    transition = str(raw.get("transition", "")).strip()
+    bouts = int(raw.get("final_sleep_bout_count", 0))
+    if bouts != 2:
+        raise core.ScenarioError(
+            "PERSON-SOLO1 biphasic calibration currently requires exactly two final sleep bouts"
+        )
+
+    relation = str(raw.get("final_bout_duration_relation", "")).strip()
+    each_fraction = float(raw.get("final_bout_sleep_fraction_each", 0.5))
+    if not 0 < each_fraction < 1:
+        raise core.ScenarioError("final_bout_sleep_fraction_each must be in (0,1)")
+    if relation == "approximately_equal" and abs(each_fraction - 0.5) > 1e-9:
+        raise core.ScenarioError(
+            "approximately_equal sleep bouts require fraction 0.5 each"
+        )
+
+    gap = raw.get("inter_bout_wake_gap_hours")
+    if not isinstance(gap, dict):
+        raise core.ScenarioError("inter_bout_wake_gap_hours must be object")
+    gap_min = core.nonneg(gap.get("min"), "sleep gap min")
+    gap_max = core.nonneg(gap.get("max"), "sleep gap max")
+    if gap_max < gap_min:
+        raise core.ScenarioError("sleep gap max must be >= min")
+    gap_mid = (gap_min + gap_max) / 2.0
+
+    total_sleep = raw.get("total_sleep_hours_per_cycle")
+    if total_sleep is not None:
+        total_sleep = core.positive(total_sleep, "total_sleep_hours_per_cycle")
+        each_bout_hours = total_sleep * each_fraction
+        episode_span_hours = total_sleep + gap_mid
+    else:
+        each_bout_hours = None
+        episode_span_hours = None
+
+    return {
+        "available": True,
+        "transition": transition,
+        "gradual_split": transition == "gradual_monophasic_to_biphasic",
+        "final_sleep_bout_count": bouts,
+        "final_bout_duration_relation": relation,
+        "final_bout_sleep_fraction_each": each_fraction,
+        "inter_bout_wake_gap_hours_min": gap_min,
+        "inter_bout_wake_gap_hours_max": gap_max,
+        "inter_bout_wake_gap_hours_midpoint": gap_mid,
+        "inter_bout_gap_fraction_of_cycle_min": gap_min / effective_period_hours,
+        "inter_bout_gap_fraction_of_cycle_max": gap_max / effective_period_hours,
+        "inter_bout_gap_fraction_of_cycle_midpoint": gap_mid / effective_period_hours,
+        "total_sleep_hours_per_cycle": total_sleep,
+        "each_bout_hours_if_total_known": each_bout_hours,
+        "sleep_episode_span_hours_if_total_known": episode_span_hours,
+        "requires_split_state": True,
+        "identifiability": (
+            "The 2-3 h waking notch and 1:1 bout ratio are identified, "
+            "but absolute sleep-bout duration is not identified until total sleep time is supplied."
+        ),
+        "model_requirement": (
+            "Keep one 25 h phase oscillator, but add an independent split/harmonic sleep-readout "
+            "state; a single thresholded sinusoidal readout is insufficient to represent the "
+            "observed gradual one-bout to two-bout transition."
+        ),
+    }
+
+
 def require_single_person(scenario):
     pir = pm.compile_person_network(scenario)
     if pir["mode"] != "PERSON2":
@@ -193,6 +266,9 @@ def run_forcing(scenario, timeline):
 def calibrate(scenario, observations, historical=None, current=None):
     node, pir = require_single_person(scenario)
     wake = estimate_wake_period(observations)
+    sleep = estimate_sleep_architecture(
+        observations, wake["effective_period_hours"]
+    )
     result = {
         "model_version": VERSION,
         "scenario_name": scenario.get("название", "PERSON-SOLO1"),
@@ -206,12 +282,16 @@ def calibrate(scenario, observations, historical=None, current=None):
             "gender_prior_used": node.get("legacy_orientation"),
         },
         "wake_period_fit": wake,
+        "sleep_architecture": sleep,
         "rlc_time_calibration": rlc_calibration(
             node, wake["effective_period_hours"]
         ),
         "budget": budget_summary(scenario),
         "limitations": [
             "The 25-hour value is inferred from the supplied wake-phase observations.",
+            "The later sleep pattern is biphasic: two approximately equal bouts separated by a 2-3 h waking interval.",
+            "The gradual split requires a separate sleep-fragmentation/readout state; it is not explained by the RLC phase oscillator alone.",
+            "Absolute bout duration remains unidentified because total sleep time per 25 h cycle was not supplied.",
             "Coffee/project events are forcing proxies, not identified causal coefficients.",
             "The fitted hours-per-model-unit scale is an internal calibration convention.",
             "PERSON-SOLO1 is not a medical or psychological sleep predictor.",
@@ -228,6 +308,7 @@ def report(result):
     w = result["wake_period_fit"]
     r = result["rlc_time_calibration"]
     b = result["budget"]
+    s = result.get("sleep_architecture", {"available": False})
     lines = [
         "# PERSON-SOLO1 calibration report",
         "",
@@ -249,6 +330,22 @@ def report(result):
         f"- fit RMSE = {w['fit_rmse_hours']:.6f} h",
         f"- calibrated time scale = {r['hours_per_model_time_unit']:.6f} h/model-unit",
         f"- RLC envelope e-fold = {r['envelope_efold_hours']:.6f} h",
+        "",
+        "## Sleep architecture",
+        "",
+    ]
+    if s.get("available"):
+        lines += [
+            f"- transition = {s['transition']}",
+            f"- final bouts = {s['final_sleep_bout_count']}",
+            f"- bout ratio = 1:1",
+            f"- waking gap = {s['inter_bout_wake_gap_hours_min']:.2f}-{s['inter_bout_wake_gap_hours_max']:.2f} h",
+            f"- gap midpoint = {s['inter_bout_wake_gap_hours_midpoint']:.2f} h",
+            f"- gap fraction of 25 h cycle = {100*s['inter_bout_gap_fraction_of_cycle_midpoint']:.2f}%",
+            f"- absolute bout duration = {'unknown' if s['total_sleep_hours_per_cycle'] is None else 'identified'}",
+            f"- requires split-state = {s['requires_split_state']}",
+        ]
+    lines += [
         "",
         "## Minimal budget",
         "",
