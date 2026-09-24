@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from simulator import person_time_solver as pts
+from simulator import problem_solver as ps
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -133,6 +134,47 @@ class PersonTimeSolverTests(unittest.TestCase):
             1000.0,
             places=6,
         )
+
+    def test_problem_solver_person_timeline_route(self):
+        timeline = {
+            "моделирование": {
+                "дней": 1,
+                "шаг_дней": 0.01,
+                "выборка_дней": 0.1
+            },
+            "события": [{
+                "id": "wife-event",
+                "день": 0.2,
+                "длительность_дней": 0.2,
+                "персонаж": "wife",
+                "добавить_возбуждение": 0.3
+            }]
+        }
+        result = ps.solve_problem(
+            self.scenario,
+            {"type": "person_timeline", "timeline": timeline},
+        )
+        self.assertEqual(
+            result["model_version"],
+            "RLC-FAMILY-PERSON-TIME2-0.1",
+        )
+        self.assertIn("wife", result["summary"]["persons"])
+
+    def test_memory_impulse_requires_person(self):
+        timeline = {
+            "моделирование": {
+                "дней": 1,
+                "шаг_дней": 0.01,
+                "выборка_дней": 0.1
+            },
+            "события": [{
+                "id": "bad-memory",
+                "день": 0.2,
+                "импульс_памяти": 0.1
+            }]
+        }
+        with self.assertRaises(Exception):
+            pts.simulate_person_timeline(self.scenario, timeline)
 
     def test_deterministic_and_finite(self):
         timeline = json.loads(
