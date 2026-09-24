@@ -82,11 +82,16 @@ def instantaneous_components(sample):
         excitation = norm(node["voltage"], 0.30)
         memory = clip01(node["memory"])
         incident = _incident_link_load(sample, pid)
+        forcing = norm(
+            node.get("event_drive", 0.0),
+            pload.FORCING_SCALE,
+        )
         combined = pload.combine_components(
             excitation,
             memory,
             incident,
             financial,
+            forcing,
         )
         persons[pid] = {
             "kind": node.get("kind"),
@@ -95,6 +100,7 @@ def instantaneous_components(sample):
             "memory": memory,
             "incident_link_stress": incident,
             "financial_stress": financial,
+            "forcing_exposure": forcing,
             "combined": combined,
         }
 
@@ -173,7 +179,7 @@ def integrate_trajectory(person_time_result):
         raise core.ScenarioError("PERSON-TIME2 returned no samples")
 
     first = instantaneous_components(samples[0])
-    person_state = {pid: 0.20 for pid in first["persons"]}
+    person_state = {pid: pload.INITIAL_LOAD for pid in first["persons"]}
     link_state = {key: 0.15 for key in first["links"]}
 
     rows = []
