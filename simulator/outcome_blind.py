@@ -150,12 +150,20 @@ def predict_prefix(prefix, horizon_days, lookback_days=3.0):
     person_crossers = [
         (v["time_to_attention_days"], k)
         for k, v in persons.items()
-        if v["time_to_attention_days"] is not None
+        if (
+            v["state_at_cutoff"] < PERSON_ATTENTION_THRESHOLD
+            and v["time_to_attention_days"] is not None
+            and v["time_to_attention_days"] > 0
+        )
     ]
     link_crossers = [
         (v["time_to_repair_threshold_days"], k)
         for k, v in links.items()
-        if v["time_to_repair_threshold_days"] is not None
+        if (
+            v["state_at_cutoff"] < LINK_REPAIR_THRESHOLD
+            and v["time_to_repair_threshold_days"] is not None
+            and v["time_to_repair_threshold_days"] > 0
+        )
     ]
 
     return {
@@ -174,6 +182,99 @@ def predict_prefix(prefix, horizon_days, lookback_days=3.0):
         "future_rows_seen": 0,
     }
 
+
+
+def _linear_slope(prefix, group, key, field, lookback_days):
+    end = float(prefix[-1]["day"])
+    start = end - float(lookback_days)
+    rows = [
+        row for row in prefix
+        if float(row["day"]) >= start - 1e-12
+    ]
+    if len(rows) < 2:
+        return 0.0
+    xs = [float(row["day"]) for row in rows]
+    ys = [float(row[group][key][field]) for row in rows]
+    xbar = sum(xs) / len(xs)
+    ybar = sum(ys) / len(ys)
+    var = sum((x - xbar) ** 2 for x in xs)
+    if var <= 0:
+        return 0.0
+    return sum(
+        (x - xbar) * (y - ybar)
+        for x, y in zip(xs, ys)
+    ) / var
+
+
+def linear_trend_baseline(prefix, horizon_days, lookback_days=3.0):
+    """Project recent accumulated-state slope linearly; no mechanistic model."""
+    last = prefix[-1]
+    persons = {}
+    for pid, item in last["persons"].items():
+        state = float(item["accumulated_load"])
+        slope = _linear_slope(
+            prefix, "persons", pid, "accumulated_load", lookback_days
+        )
+        delta = slope * float(horizon_days)
+        projected = max(0.0, min(1.0, state + delta))
+        cross = None
+        if state < PERSON_ATTENTION_THRESHOLD and slope > 0:
+            t = (PERSON_ATTENTION_THRESHOLD - state) / slope
+            if 0 < t <= horizon_days:
+                cross = t
+        persons[pid] = {
+            "state_at_cutoff": state,
+            "recent_slope_per_day": slope,
+            "projected_state": projected,
+            "projected_delta": projected - state,
+            "direction": direction(projected - state),
+            "time_to_attention_days": cross,
+        }
+
+    links = {}
+    for key, item in last["links"].items():
+        state = float(item["accumulated_strain"])
+        slope = _linear_slope(
+            prefix, "links", key, "accumulated_strain", lookback_days
+        )
+        delta = slope * float(horizon_days)
+        projected = max(0.0, min(1.0, state + delta))
+        cross = None
+        if state < LINK_REPAIR_THRESHOLD and slope > 0:
+            t = (LINK_REPAIR_THRESHOLD - state) / slope
+            if 0 < t <= horizon_days:
+                cross = t
+        links[key] = {
+            "state_at_cutoff": state,
+            "recent_slope_per_day": slope,
+            "projected_state": projected,
+            "projected_delta": projected - state,
+            "direction": direction(projected - state),
+            "time_to_repair_threshold_days": cross,
+        }
+
+    person_crossers = [
+        (v["time_to_attention_days"], k)
+        for k, v in persons.items()
+        if v["time_to_attention_days"] is not None
+    ]
+    link_crossers = [
+        (v["time_to_repair_threshold_days"], k)
+        for k, v in links.items()
+        if v["time_to_repair_threshold_days"] is not None
+    ]
+
+    return {
+        "persons": persons,
+        "links": links,
+        "predicted_first_person_attention": (
+            min(person_crossers)[1] if person_crossers else None
+        ),
+        "predicted_first_link_repair": (
+            min(link_crossers)[1] if link_crossers else None
+        ),
+        "future_rows_seen": 0,
+    }
 
 def persistence_baseline(prefix, horizon_days):
     last = prefix[-1]
@@ -299,12 +400,18 @@ def run_blind(rows, cutoff_day, horizon_days, lookback_days=3.0):
         prefix, horizon_days, lookback_days=lookback_days
     )
     baseline_prediction = persistence_baseline(prefix, horizon_days)
+    trend_prediction = linear_trend_baseline(
+        prefix, horizon_days, lookback_days=lookback_days
+    )
 
     model_eval = evaluate_prediction(
         model_prediction, prefix, suffix
     )
     baseline_eval = evaluate_prediction(
         baseline_prediction, prefix, suffix
+    )
+    trend_eval = evaluate_prediction(
+        trend_prediction, prefix, suffix
     )
 
     return {
@@ -315,9 +422,11 @@ def run_blind(rows, cutoff_day, horizon_days, lookback_days=3.0):
         "hidden_suffix_rows": len(suffix),
         "model": model_eval,
         "persistence_baseline": baseline_eval,
+        "linear_trend_baseline": trend_eval,
         "blindness_contract": {
             "prediction_api_receives_prefix_only": True,
             "prediction_future_rows_seen": model_prediction["future_rows_seen"],
             "baseline_future_rows_seen": baseline_prediction["future_rows_seen"],
+            "trend_future_rows_seen": trend_prediction["future_rows_seen"],
         },
     }
