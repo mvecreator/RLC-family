@@ -775,6 +775,7 @@ def simulate_person_timeline(scenario, timeline):
         "equations": [
             "C_p dv_p/dt = u_p(t) - v_p/R_p - i_L,p - sum(I_branch)",
             "L_p di_L,p/dt = v_p",
+            "channel coupling = simultaneous base-read source modulation before branch current evaluation",
             "dm_p/dt = local_excitation + link_stress + financial_stress - recovery",
             "dReserve/dt = (income-load)/days_per_month + impulses",
             "dDebt/dt = annual_rate/365*Debt - mortgage/days_per_month",
@@ -846,7 +847,8 @@ def write_outputs(out, result):
     node_rows = [",".join(node_header)]
     link_header = [
         "day", "link_id", "pair_id", "channel_kind",
-        "from", "to", "quality", "R_link", "current", "current_abs",
+        "from", "to", "element_type", "gate", "reverse_ratio",
+        "quality", "R_link", "current", "current_abs",
     ]
     link_rows = [",".join(link_header)]
 
@@ -862,8 +864,11 @@ def write_outputs(out, result):
             link_rows.append(",".join(str(x) for x in [
                 day, link["link_id"], link["pair_id"],
                 link.get("channel_kind", "generic"),
-                link["from"], link["to"], link["quality"],
-                link["R_link"], link["current"], link["current_abs"],
+                link["from"], link["to"],
+                link.get("element_type", "RESISTIVE"),
+                link.get("gate"), link.get("reverse_ratio"),
+                link["quality"], link["R_link"],
+                link["current"], link["current_abs"],
             ]))
 
     (out / "person_nodes.csv").write_text(
