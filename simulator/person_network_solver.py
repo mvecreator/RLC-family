@@ -135,6 +135,10 @@ def solve_network(scenario):
         vb=voltages[index[link["to"]]]
         current=(va-vb)/link["R_link"]
         link_results.append({
+            "link_id":link["link_id"],
+            "pair_id":link["pair_id"],
+            "channel_kind":link.get("channel_kind","generic"),
+            "parallel_branch_count":link.get("parallel_branch_count",1),
             "from":link["from"],
             "to":link["to"],
             "element_type":link.get("element_type","RESISTIVE"),
@@ -173,7 +177,7 @@ def solve_network(scenario):
         "max_person_voltage":max_node["voltage_abs"],
         "phase_span_deg":max(phases)-min(phases) if phases else 0.0,
         "strongest_link":(
-            f"{max_link['from']}->{max_link['to']}" if max_link else None
+            max_link["link_id"] if max_link else None
         ),
         "max_link_current":max_link["current_abs"] if max_link else 0.0,
         "total_link_dissipation_proxy":sum(x["dissipation_proxy"] for x in link_results),
