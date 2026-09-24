@@ -902,3 +902,8 @@ Separates caffeine from generic forcing using configurable half-life and timing 
 **[OUTCOME-BLIND1 — prefix-only predictive validation](OUTCOME_BLIND1.md)**
 
 Hides future windows from the predictor and scores recovery/accumulation/stability for each person and relationship link against a persistence baseline. Includes an explicit hidden-reversal case where the model is expected to fail rather than leak future information.
+
+
+**[OUTCOME-BENCH1 — first blind prediction corpus](OUTCOME_BENCH1.md)**
+
+Adds a fixed 34-case direction benchmark and 4-case localization benchmark, compares RLC projection with persistence and linear-trend baselines, and explicitly separates continuation performance from hidden regime-shift failures.
