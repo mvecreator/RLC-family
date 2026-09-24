@@ -297,3 +297,23 @@ linear trend
 ```
 
 See [OUTCOME-BENCH1](OUTCOME_BENCH1.md).
+
+
+## Evidence provenance via HISTORY-DATA1
+
+Before a history contributes to an out-of-sample score, it should pass [HISTORY-DATA1](HISTORY_DATA1.md).
+
+Retrospective histories remain useful for hypothesis generation, but cannot be counted as genuine blind evidence when:
+
+- the outcome was already known;
+- dates were reconstructed after the fact;
+- cutoff/horizon were chosen after seeing the future;
+- predictor features were derived from the hidden suffix.
+
+The current SOLO sleep/caffeine history is intentionally classified as:
+
+```text
+retrospective_hypothesis_record
+```
+
+rather than a blind-validation candidate.
