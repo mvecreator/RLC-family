@@ -5,6 +5,7 @@ import unittest
 from pathlib import Path
 
 from simulator import person_network_solver as pns
+from simulator import problem_solver as ps
 
 ROOT=Path(__file__).resolve().parents[1]
 
@@ -59,6 +60,14 @@ class PersonNetworkSolverTests(unittest.TestCase):
             by={n["id"]:complex(n["voltage_re"],n["voltage_im"]) for n in result["nodes"]}
             return abs(by["source"]-by["receiver"])
         self.assertLess(gap(rh),gap(rl))
+
+    def test_problem_solver_person_route(self):
+        scenario=json.loads(
+            (ROOT/"examples"/"person_family_scenario.json").read_text(encoding="utf-8")
+        )
+        result=ps.solve_problem(scenario,{"type":"person_network"})
+        self.assertEqual(result["model_version"],"RLC-FAMILY-PERSON-NET1-0.1")
+        self.assertEqual(result["summary"]["node_count"],4)
 
     def test_results_finite(self):
         scenario=json.loads(
