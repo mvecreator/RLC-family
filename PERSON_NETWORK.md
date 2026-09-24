@@ -159,3 +159,22 @@ T_{pq}=q_{pq}\sqrt{f_{pq}a_{pq}}
 `hostility` не меняет проводимость напрямую; она используется safety-layer как отдельная семантика.
 
 Legacy `quality` сохраняет старое электрическое поведение.
+
+
+## Nonlinear LINK-SEMI1 boundary
+
+PERSON-NET1 is a linear frequency-domain nodal solver.
+
+Therefore it accepts `RESISTIVE` links only.
+
+If the PERSON2 graph contains:
+
+```text
+DIODE
+MOSFET
+BREAKDOWN_DIODE
+```
+
+PERSON-NET1 rejects the solve and directs the caller to PERSON-TIME2.
+
+This avoids silently linearizing directed/gated social-channel hypotheses into an ordinary resistor network.
