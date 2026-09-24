@@ -19,9 +19,11 @@ from pathlib import Path
 
 try:
     from simulator import person_time_solver as pts
+    from simulator import person_load_model as pload
     from simulator import rlc_family_sim as core
 except ModuleNotFoundError:
     import person_time_solver as pts
+    import person_load_model as pload
     import rlc_family_sim as core
 
 VERSION = "RLC-FAMILY-PERSON-FAMILY-SAFETY1-0.1"
@@ -80,13 +82,15 @@ def instantaneous_components(sample):
         excitation = norm(node["voltage"], 0.30)
         memory = clip01(node["memory"])
         incident = _incident_link_load(sample, pid)
-        combined = clip01(
-            0.25 * excitation
-            + 0.35 * memory
-            + 0.20 * incident
-            + 0.20 * financial
+        combined = pload.combine_components(
+            excitation,
+            memory,
+            incident,
+            financial,
         )
         persons[pid] = {
+            "kind": node.get("kind"),
+            "age": node.get("age"),
             "excitation": excitation,
             "memory": memory,
             "incident_link_stress": incident,
@@ -181,7 +185,7 @@ def integrate_trajectory(person_time_result):
 
         if dt > 0:
             for pid, item in comp["persons"].items():
-                person_state[pid] = _advance(
+                person_state[pid] = pload.advance(
                     person_state[pid], item["combined"], dt
                 )
             for key, item in comp["links"].items():
@@ -358,16 +362,23 @@ def summarize(rows, relationship_flags=None):
 
     persons = {}
     for pid in person_ids:
-        persons[pid] = {
-            "peak_load": _max_state(rows, "persons", pid),
-            "first_monitor_day": _first_crossing(
-                rows, "persons", pid, 0.45
-            ),
-            "first_overload_review_day": _first_crossing(
-                rows, "persons", pid, 0.60
-            ),
-            "final_load": rows[-1]["persons"][pid]["accumulated_load"],
-        }
+        calibrated = pload.classify(rows, pid)
+        kind = rows[0]["persons"][pid].get("kind") or "adult"
+        age = rows[0]["persons"][pid].get("age")
+        calibrated["kind"] = kind
+        calibrated["age"] = age
+        calibrated["recommendations"] = pload.recommendations(
+            calibrated, kind=kind
+        )
+
+        # Compatibility fields from PERSON-FAMILY-SAFETY1-0.1.
+        calibrated["first_monitor_day"] = _first_crossing(
+            rows, "persons", pid, 0.45
+        )
+        calibrated["first_overload_review_day"] = _first_crossing(
+            rows, "persons", pid, 0.60
+        )
+        persons[pid] = calibrated
 
     links = {}
     for key in link_keys:
@@ -399,6 +410,13 @@ def summarize(rows, relationship_flags=None):
         "persons": persons,
         "links": links,
         "highest_strain_link": highest,
+        "highest_load_person": (
+            max(
+                persons.items(),
+                key=lambda kv: kv[1]["peak_load"]["value"],
+            )[0]
+            if persons else None
+        ),
         "relationship_safety_override": safety,
         "family_stress_is_diagnostic": False,
         "breakdown_probability_computed": False,
@@ -420,6 +438,7 @@ def assess(scenario, timeline, relationship_flags=None):
         "summary": summarize(rows, relationship_flags),
         "limitations": [
             "accumulated_load and accumulated_strain are project engineering indices",
+            "PERSON-LOAD1 thresholds and dwell times are synthetic calibration guardrails, not clinical cut-offs",
             "the model does not predict divorce or calculate relationship-breakdown probability",
             "high interaction current alone is not treated as conflict",
             "explicit safety concerns override joint repair recommendations",
