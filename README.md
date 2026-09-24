@@ -872,3 +872,8 @@ python3 simulator/person_time_solver.py \
 **[PERSON-SAFETY1 — накопление нагрузки и care guardrails](PERSON_SAFETY.md)**
 
 Отдельный safety-layer для PERSON-SOLO: постепенный `stress_load`, ранний сигнал планового обращения к врачу при сохраняющемся необычном сне и жёсткое разделение между численным RLC-score и явно сообщёнными клиническими красными флагами.
+
+
+**[PERSON-FAMILY-SAFETY1 — накопленный стресс и сигналы риска разрыва](PERSON_FAMILY_SAFETY.md)**
+
+Поверх PERSON-TIME2 добавлены медленные состояния нагрузки каждого человека и strain каждой связи. Модель может поднять ранний `RELATIONSHIP_REPAIR_REVIEW` и более сильный `BREAKDOWN_RISK_REVIEW`, но не вычисляет вероятность развода/расставания; recovery после repair-событий моделируется явно.
