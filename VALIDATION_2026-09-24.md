@@ -341,3 +341,50 @@ Incident person load no longer averages across parallel branches. It uses the bo
 MULTI-LINK-CAL1 defines 12 compatibility/mechanics gates.
 
 External social interpretation remains unvalidated; this gate establishes multigraph execution semantics only.
+
+
+## 15. CHANNEL-COUPLING1
+
+Explicit branch-to-branch modulation is implemented on top of MULTI-LINK1.
+
+Current source signals:
+
+```text
+current_abs
+power = |deltaV * I|
+conductance
+communication_quality
+effective_transmission
+hostility
+gate
+```
+
+Current target fields:
+
+```text
+communication_quality
+contact_frequency
+availability
+hostility
+gate
+reverse_ratio
+```
+
+All source signals are frozen before any target modification at that solver instant, so reciprocal rules are deterministic and order-independent.
+
+Same-pair coupling is allowed by default. Cross-pair coupling requires `allow_cross_pair=true`.
+
+PERSON-NET1 rejects all coupled-channel scenarios; PERSON-TIME2 is authoritative.
+
+The first example declares:
+
+```text
+work power -> personal communication quality
+personal communication quality -> work reverse_ratio
+```
+
+as explicit hypotheses.
+
+CHANNEL-COUPLING-CAL1 defines 15 mechanics/provenance gates.
+
+Accumulated LINK-THERM heat/damage are not yet feedback sources; THERMAL-FEEDBACK1 is deferred.
