@@ -892,3 +892,8 @@ Relationship links now separate communication quality, contact frequency, availa
 **[PERSON-LOAD-CAL1 — calibrated load for each family member](PERSON_LOAD_CALIBRATION.md)**
 
 Calibrates individual accumulated load with persistence-aware bands, adds sustained direct forcing exposure, and emits a separate load/recommendation summary for every adult and child PERSON2 node.
+
+
+**[CAFFEINE1 — timed stimulant burden](CAFFEINE1.md)**
+
+Separates caffeine from generic forcing using configurable half-life and timing relative to sleep. The SOLO sleep target now includes emergence of biphasic sleep and later gradual disappearance of the secondary bout through temporal stretching.
