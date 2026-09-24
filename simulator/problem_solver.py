@@ -18,8 +18,10 @@ from pathlib import Path
 
 try:
     from simulator import rlc_family_sim as core
+    from simulator import person_network_solver as person_net
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
+    import person_network_solver as person_net
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -366,6 +368,8 @@ def harmonize(scenario, problem):
 
 def solve_problem(scenario, problem):
     ptype = problem.get("type", "diagnose")
+    if ptype == "person_network":
+        return person_net.solve_network(scenario)
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {
