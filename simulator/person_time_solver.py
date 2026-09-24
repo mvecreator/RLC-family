@@ -61,18 +61,56 @@ def _compile_events(spec, node_ids, link_keys):
     raw = spec.get("события", spec.get("events", []))
     if not isinstance(raw, list):
         raise core.ScenarioError("события must be list")
+
+    catalog_by_id = {}
+    pair_to_ids = {}
+    legacy_pairs = set()
+
+    if isinstance(link_keys, list) and all(
+        isinstance(link, dict) for link in link_keys
+    ):
+        for link in link_keys:
+            lid = str(link.get("link_id", "")).strip()
+            pair = tuple(sorted((str(link["from"]), str(link["to"]))))
+            if not lid:
+                raise core.ScenarioError("compiled link missing link_id")
+            catalog_by_id[lid] = pair
+            pair_to_ids.setdefault(pair, []).append(lid)
+    else:
+        legacy_pairs = set(link_keys)
+
     out = []
     for idx, item in enumerate(raw):
         if not isinstance(item, dict):
             raise core.ScenarioError(f"event {idx}: expected object")
-        start = core.nonneg(item.get("день", item.get("at_day", 0)), f"event {idx}.day")
-        duration = core.nonneg(item.get("длительность_дней", item.get("duration_days", 0)), f"event {idx}.duration")
+        start = core.nonneg(
+            item.get("день", item.get("at_day", 0)),
+            f"event {idx}.day",
+        )
+        duration = core.nonneg(
+            item.get("длительность_дней", item.get("duration_days", 0)),
+            f"event {idx}.duration",
+        )
         target_person = item.get("target_person", item.get("персонаж"))
         if target_person is not None:
             target_person = str(target_person)
             if target_person not in node_ids:
-                raise core.ScenarioError(f"event {idx}: unknown person {target_person}")
+                raise core.ScenarioError(
+                    f"event {idx}: unknown person {target_person}"
+                )
+
         target_link = item.get("target_link", item.get("связь"))
+        target_link_id = item.get(
+            "target_link_id",
+            item.get("channel_id"),
+        )
+        if target_link_id is not None:
+            target_link_id = str(target_link_id).strip()
+            if not target_link_id:
+                raise core.ScenarioError(
+                    f"event {idx}: target_link_id must be non-empty"
+                )
+
         link_tuple = None
         if target_link is not None:
             if isinstance(target_link, str):
@@ -87,16 +125,59 @@ def _compile_events(spec, node_ids, link_keys):
             elif isinstance(target_link, list):
                 parts = [str(x).strip() for x in target_link]
             else:
-                raise core.ScenarioError(f"event {idx}: target_link must be string/list")
+                raise core.ScenarioError(
+                    f"event {idx}: target_link must be string/list"
+                )
             if len(parts) != 2:
-                raise core.ScenarioError(f"event {idx}: target_link needs two ids")
+                raise core.ScenarioError(
+                    f"event {idx}: target_link needs two ids"
+                )
             link_tuple = tuple(sorted(parts))
-            if link_tuple not in link_keys:
-                raise core.ScenarioError(f"event {idx}: unknown link {parts}")
-        if float(item.get("memory_impulse", item.get("импульс_памяти", 0.0))) != 0 and target_person is None:
+
+        if catalog_by_id:
+            if target_link_id is not None:
+                if target_link_id not in catalog_by_id:
+                    raise core.ScenarioError(
+                        f"event {idx}: unknown link_id {target_link_id}"
+                    )
+                resolved_pair = catalog_by_id[target_link_id]
+                if link_tuple is not None and link_tuple != resolved_pair:
+                    raise core.ScenarioError(
+                        f"event {idx}: target_link and target_link_id disagree"
+                    )
+                link_tuple = resolved_pair
+            elif link_tuple is not None:
+                ids = pair_to_ids.get(link_tuple, [])
+                if not ids:
+                    raise core.ScenarioError(
+                        f"event {idx}: unknown link {list(link_tuple)}"
+                    )
+                if len(ids) > 1:
+                    raise core.ScenarioError(
+                        f"event {idx}: ambiguous parallel link "
+                        f"{list(link_tuple)}; use target_link_id"
+                    )
+                target_link_id = ids[0]
+        else:
+            if target_link_id is not None:
+                raise core.ScenarioError(
+                    f"event {idx}: target_link_id requires compiled link catalog"
+                )
+            if link_tuple is not None and link_tuple not in legacy_pairs:
+                raise core.ScenarioError(
+                    f"event {idx}: unknown link {list(link_tuple)}"
+                )
+
+        if float(
+            item.get(
+                "memory_impulse",
+                item.get("импульс_памяти", 0.0),
+            )
+        ) != 0 and target_person is None:
             raise core.ScenarioError(
                 f"event {idx}: memory impulse requires target_person"
             )
+
         link_mutation_keys = (
             "link_quality_set", "link_quality_add",
             "качество_связи", "изменить_качество_связи",
@@ -111,27 +192,63 @@ def _compile_events(spec, node_ids, link_keys):
             "gate_set", "gate_add",
             "установить_gate", "изменить_gate",
         )
-        if target_link is None and any(
+        if target_link_id is None and link_tuple is None and any(
             key in item and item.get(key) not in (None, 0, 0.0)
             for key in link_mutation_keys
         ):
             raise core.ScenarioError(
-                f"event {idx}: link semantic mutation requires target_link"
+                f"event {idx}: link mutation requires target_link or target_link_id"
             )
+
         out.append({
             "id": str(item.get("id", f"event-{idx+1}")),
-            "label": str(item.get("описание", item.get("label", item.get("id", f"Событие {idx+1}")))),
+            "label": str(
+                item.get(
+                    "описание",
+                    item.get(
+                        "label",
+                        item.get("id", f"Событие {idx+1}"),
+                    ),
+                )
+            ),
             "start": start,
             "end": start + duration,
             "duration": duration,
             "target_person": target_person,
             "target_link": link_tuple,
-            "drive_add": float(item.get("drive_add", item.get("добавить_возбуждение", 0.0))),
-            "drive_set": item.get("drive_set", item.get("установить_возбуждение")),
-            "memory_impulse": float(item.get("memory_impulse", item.get("импульс_памяти", 0.0))),
-            "money_impulse": float(item.get("money_impulse", item.get("денежный_импульс", 0.0))),
-            "link_quality_set": item.get("link_quality_set", item.get("качество_связи")),
-            "link_quality_add": float(item.get("link_quality_add", item.get("изменить_качество_связи", 0.0))),
+            "target_link_id": target_link_id,
+            "drive_add": float(
+                item.get(
+                    "drive_add",
+                    item.get("добавить_возбуждение", 0.0),
+                )
+            ),
+            "drive_set": item.get(
+                "drive_set",
+                item.get("установить_возбуждение"),
+            ),
+            "memory_impulse": float(
+                item.get(
+                    "memory_impulse",
+                    item.get("импульс_памяти", 0.0),
+                )
+            ),
+            "money_impulse": float(
+                item.get(
+                    "money_impulse",
+                    item.get("денежный_импульс", 0.0),
+                )
+            ),
+            "link_quality_set": item.get(
+                "link_quality_set",
+                item.get("качество_связи"),
+            ),
+            "link_quality_add": float(
+                item.get(
+                    "link_quality_add",
+                    item.get("изменить_качество_связи", 0.0),
+                )
+            ),
             "communication_quality_set": item.get(
                 "communication_quality_set",
                 item.get("установить_качество_общения"),
@@ -175,7 +292,6 @@ def _compile_events(spec, node_ids, link_keys):
         })
     out.sort(key=lambda e: (e["start"], e["id"]))
     return out
-
 
 def _active(event, t):
     return event["duration"] > 0 and event["start"] <= t < event["end"]
