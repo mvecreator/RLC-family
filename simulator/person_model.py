@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 from copy import deepcopy
 
 try:
@@ -48,6 +49,30 @@ def _num(value, name, lo=None, hi=None):
         raise core.ScenarioError(f"{name}: expected >= {lo}")
     if hi is not None and value > hi:
         raise core.ScenarioError(f"{name}: expected <= {hi}")
+    return value
+
+
+
+LINK_ID_RE = re.compile(r"^[A-Za-z0-9._:-]+$")
+
+
+def pair_id(a, b):
+    return "->".join(sorted((str(a), str(b))))
+
+
+def compile_link_id(item, a, b, require_explicit=False):
+    raw = item.get("link_id", item.get("channel_id"))
+    if raw is None:
+        if require_explicit:
+            raise core.ScenarioError(
+                f"parallel links {a}-{b} require explicit link_id"
+            )
+        return pair_id(a, b)
+    value = str(raw).strip()
+    if not value or not LINK_ID_RE.fullmatch(value):
+        raise core.ScenarioError(
+            "link_id must be canonical ASCII [A-Za-z0-9._:-]+"
+        )
     return value
 
 
