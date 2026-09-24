@@ -310,3 +310,34 @@ which reduces exactly to `I^2R` for RESISTIVE links.
 LINK-SEMI-CAL1 contains 10 directional/backward-compatibility gates.
 
 A current limitation remains: PERSON2 permits one link branch per pair. Explicit parallel personal/institutional branches are deferred to MULTI-LINK1.
+
+
+## 14. MULTI-LINK1
+
+PERSON2 now supports multiple explicit relationship branches between the same pair of people.
+
+Key invariants:
+
+```text
+legacy one-link scenarios retain old a->b identity
+parallel branches require explicit unique link_id
+pair-only event targeting is rejected when ambiguous
+target_link_id mutates exactly one branch
+all branch currents contribute to the endpoint node equations
+branch strain and thermal state remain independent
+pair-level current/dissipation aggregates are also reported
+```
+
+The first canonical example is:
+
+```text
+R_personal || MOSFET_work
+```
+
+between employer and employee.
+
+Incident person load no longer averages across parallel branches. It uses the bounded monotone union `1-prod(1-x_b)`, preserving the single-link value while preventing dilution when new channels are added.
+
+MULTI-LINK-CAL1 defines 11 compatibility/mechanics gates.
+
+External social interpretation remains unvalidated; this gate establishes multigraph execution semantics only.
