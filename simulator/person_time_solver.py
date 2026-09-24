@@ -278,7 +278,17 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
             if node["id"] not in (link["from"], link["to"]):
                 continue
             local_flow += abs(current)
-            poor_link_stress += (1.0 - link["quality"]) * abs(current)
+            communication_quality = float(
+                link.get("communication_quality", link["quality"])
+            )
+            hostility = float(
+                link.get("hostility", 1.0 - communication_quality)
+            )
+            relational_friction = (
+                0.65 * (1.0 - communication_quality)
+                + 0.35 * hostility
+            )
+            poor_link_stress += relational_friction * abs(current)
 
         recovery = 0.5
         raw = next(
