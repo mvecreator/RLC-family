@@ -1,3 +1,4 @@
+import copy
 import unittest
 from pathlib import Path
 
@@ -84,6 +85,30 @@ class RecoveryScenarioTests(unittest.TestCase):
             staged["max_link_damage"],
             cont["max_link_damage"],
         )
+
+
+    def test_future_events_after_cutoff_cannot_change_recovery_projection(self):
+        altered = copy.deepcopy(self.timeline)
+        for event in altered["события"]:
+            if float(event.get("день", 0)) > 20.0:
+                event["качество_связи"] = 0.01
+                event["добавить_возбуждение"] = 5.0
+
+        a = recovery.compare_profiles(
+            self.scenario,
+            self.timeline,
+            cutoff_day=20.0,
+            profile_names=["continue_7d", "deep_recovery_7d"],
+        )
+        b = recovery.compare_profiles(
+            self.scenario,
+            altered,
+            cutoff_day=20.0,
+            profile_names=["continue_7d", "deep_recovery_7d"],
+        )
+
+        self.assertEqual(a["thermal_at_cutoff"], b["thermal_at_cutoff"])
+        self.assertEqual(a["profiles"], b["profiles"])
 
 
 if __name__ == "__main__":
