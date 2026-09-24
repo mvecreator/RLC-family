@@ -247,11 +247,11 @@ financial_stress =
 
 ```text
 здоровые финансы:
-  final memory ≈ 0.238
+  final memory ≈ 0.191
   peak financial stress = 0
 
 дефицит + короткий резерв:
-  final memory ≈ 0.827
+  final memory ≈ 0.424
   peak financial stress ≈ 0.497
 ```
 
@@ -282,12 +282,12 @@ financial_stress =
 
 ```text
 helpful support:
-  peak current ≈ 0.086
-  final memory ≈ 0.393
+  peak current ≈ 0.090
+  final memory ≈ 0.352
 
 stoking support:
-  peak current ≈ 0.190
-  final memory ≈ 0.413
+  peak current ≈ 0.193
+  final memory ≈ 0.379
 ```
 
 То есть одна и та же «антенна наружу» может работать либо как демпфер, либо как дополнительный источник возбуждения.
@@ -309,11 +309,11 @@ strong money light / good coupling
 ```text
 weakly illuminated:
   final reserve ≈ 1830
-  final memory ≈ 0.676
+  final memory ≈ 0.364
 
 well illuminated:
   final reserve ≈ 2836
-  final memory ≈ 0.521
+  final memory ≈ 0.302
 ```
 
 То есть PHOTO/LASER-ветка теперь влияет не только на красивую финансовую метафору: дополнительный денежный поток уменьшает финансовый стресс, а тот уже меняет динамику памяти.
@@ -329,3 +329,10 @@ money_light_reduces_financially_coupled_memory
 ```
 
 Таким образом первый цикл сценарных испытаний уже не просто подтвердил модель, а обнаружил три архитектурных дефекта и заставил изменить уравнения.
+
+
+## Переход к формальной калибровке
+
+Свободный Scenario Lab теперь дополнен отдельным [CALIB1](CALIBRATION.md).
+
+Scenario Lab продолжает искать неожиданные бытовые случаи, а CALIB1 фиксирует парные контрольные эксперименты с числовыми допусками.
