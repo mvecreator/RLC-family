@@ -279,3 +279,20 @@ RLC-family should therefore behave less like a questionnaire and more like an en
 ```
 
 Решатель строит комплексную узловую матрицу `Y V = I` и возвращает отдельные напряжения/фазы персонажей и токи каналов. Подробнее: [PERSON_NETWORK.md](PERSON_NETWORK.md).
+
+
+### person_timeline
+
+Для адресной истории по конкретным PERSON2-узлам:
+
+```json
+{
+  "type": "person_timeline",
+  "timeline": {
+    "моделирование": {},
+    "события": []
+  }
+}
+```
+
+Используется [PERSON_TIME.md](PERSON_TIME.md). Solver собирает и интегрирует систему дифференциальных уравнений по всем персонажам и связям.
