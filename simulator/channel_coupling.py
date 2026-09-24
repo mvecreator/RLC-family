@@ -94,6 +94,16 @@ def compile_couplings(scenario, links):
         if source == target:
             raise ValueError(f"{cid}: source and target link must differ")
 
+        same_pair = (
+            by_id[source].get("pair_id")
+            == by_id[target].get("pair_id")
+        )
+        allow_cross_pair = item.get("allow_cross_pair") is True
+        if not same_pair and not allow_cross_pair:
+            raise ValueError(
+                f"{cid}: cross-pair coupling requires allow_cross_pair=true"
+            )
+
         signal = str(item.get("source_signal", "power")).strip().lower()
         if signal not in SOURCE_SIGNALS:
             raise ValueError(
@@ -146,10 +156,8 @@ def compile_couplings(scenario, links):
             "gain": gain,
             "max_abs_effect": max_abs_effect,
             "target_field": field,
-            "same_pair": (
-                by_id[source].get("pair_id")
-                == by_id[target].get("pair_id")
-            ),
+            "same_pair": same_pair,
+            "allow_cross_pair": allow_cross_pair,
             "description": str(item.get("description", "")),
         })
 
