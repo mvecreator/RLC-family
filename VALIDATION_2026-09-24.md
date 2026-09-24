@@ -338,6 +338,6 @@ between employer and employee.
 
 Incident person load no longer averages across parallel branches. It uses the bounded monotone union `1-prod(1-x_b)`, preserving the single-link value while preventing dilution when new channels are added.
 
-MULTI-LINK-CAL1 defines 11 compatibility/mechanics gates.
+MULTI-LINK-CAL1 defines 12 compatibility/mechanics gates.
 
 External social interpretation remains unvalidated; this gate establishes multigraph execution semantics only.
