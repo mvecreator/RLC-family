@@ -563,3 +563,56 @@ work channel = OVERHEATED
 ```
 
 Нужно назвать именно канал.
+
+
+---
+
+## Межканальное влияние CHANNEL-COUPLING1
+
+Если пользователь хочет моделировать влияние одного канала на другой, LLM не должна автоматически связывать их по социальной роли.
+
+Нужно объявить явное правило:
+
+```text
+source_link_id
+source_signal
+threshold
+gain
+target_link_id
+target_field
+```
+
+Пример:
+
+```text
+work |VI| power
+  -> personal communication_quality
+```
+
+В ответе всегда различать:
+
+```text
+наблюдаемое состояние канала
+vs
+гипотетический coupling rule
+```
+
+Если coupling дал вклад, объяснять:
+
+```text
+какое правило
+какой source signal
+какой threshold
+какой signed delta
+какое target field
+```
+
+Не говорить «работа разрушает личные отношения» как факт.
+
+Корректнее:
+
+> В этом сценарии объявлено правило, по которому высокий work-channel power снижает personal communication quality; на данном участке оно дало delta = ...
+
+Cross-pair coupling между разными парами людей должен использовать явное `allow_cross_pair=true`.
+
+Накопленный LINK-THERM heat/damage пока не является source CHANNEL-COUPLING1. Для этого нужен отдельный THERMAL-FEEDBACK1.
