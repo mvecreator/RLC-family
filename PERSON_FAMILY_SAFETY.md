@@ -213,12 +213,22 @@ LLM компилирует:
 
 ```text
 link strain grows gradually
--> repair review
--> possible breakdown-risk review
+-> RELATIONSHIP_REPAIR_REVIEW
 -> repair window lowers strain from its peak
 ```
 
-То есть разрыв не должен быть однонаправленной судьбой: recovery тоже является частью модели.
+Текущая калибровка этого умеренно тяжёлого сценария даёт peak strain около `0.59`, то есть он **не обязан** пересекать breakdown-порог `0.65`.
+
+Для отдельного критического gate используются:
+
+```text
+examples/person_family_breakdown_scenario.json
+examples/person_family_breakdown_timeline.json
+```
+
+В нём длительная деградация канала сочетается с высокой накопленной памятью, финансовым фоном и асимметричной внешней нагрузкой. Этот сценарий должен пересечь `0.65` и поднять `BREAKDOWN_RISK_REVIEW`.
+
+То есть разрыв не должен быть однонаправленной судьбой: recovery тоже является частью модели, а breakdown-signal резервируется для более тяжёлого режима.
 
 ## Gates
 

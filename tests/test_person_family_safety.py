@@ -17,6 +17,12 @@ class PersonFamilySafetyTests(unittest.TestCase):
         self.stressed = solo.load_json(
             ROOT / "examples" / "person_family_stress_timeline.json"
         )
+        self.critical_scenario = solo.load_json(
+            ROOT / "examples" / "person_family_breakdown_scenario.json"
+        )
+        self.critical_timeline = solo.load_json(
+            ROOT / "examples" / "person_family_breakdown_timeline.json"
+        )
 
     def test_accumulated_link_strain_is_gradual(self):
         result = family_safety.assess(self.scenario, self.stressed)
@@ -29,13 +35,26 @@ class PersonFamilySafetyTests(unittest.TestCase):
             early["links"][key]["accumulated_strain"],
         )
 
-    def test_persistent_partner_strain_raises_breakdown_review(self):
+    def test_persistent_partner_strain_raises_repair_review_only(self):
         result = family_safety.assess(self.scenario, self.stressed)
+        link = result["summary"]["links"]["husband->wife"]
+        actions = [x["action"] for x in link["recommendations"]]
+        self.assertIn("RELATIONSHIP_REPAIR_REVIEW", actions)
+        self.assertNotIn("BREAKDOWN_RISK_REVIEW", actions)
+        self.assertIsNone(link["first_breakdown_risk_day"])
+        self.assertFalse(link["breakdown_probability_computed"])
+
+    def test_critical_partner_strain_raises_breakdown_review(self):
+        result = family_safety.assess(
+            self.critical_scenario,
+            self.critical_timeline,
+        )
         link = result["summary"]["links"]["husband->wife"]
         actions = [x["action"] for x in link["recommendations"]]
         self.assertIn("RELATIONSHIP_REPAIR_REVIEW", actions)
         self.assertIn("BREAKDOWN_RISK_REVIEW", actions)
         self.assertIsNotNone(link["first_breakdown_risk_day"])
+        self.assertGreaterEqual(link["peak_strain"]["value"], 0.65)
         self.assertFalse(link["breakdown_probability_computed"])
 
     def test_repair_window_reduces_final_strain_from_peak(self):
