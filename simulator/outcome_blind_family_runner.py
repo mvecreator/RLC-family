@@ -63,6 +63,12 @@ def run_spec(spec, root=ROOT):
             "baseline_link_direction": collect(
                 "persistence_baseline", "link"
             ),
+            "trend_person_direction": collect(
+                "linear_trend_baseline", "person"
+            ),
+            "trend_link_direction": collect(
+                "linear_trend_baseline", "link"
+            ),
         },
         "claim_boundary": (
             "These cases use model-generated trajectories. They test blind "
