@@ -238,3 +238,35 @@ hidden suffix withheld until evaluation
 ```
 
 This closes a major methodological loophole: known anecdotes can no longer inflate out-of-sample evidence.
+
+
+## 12. THERMAL-RECOVERY1
+
+A thermal-memory layer is now implemented over the calibrated person/link dynamics.
+
+Key additions:
+
+```text
+PERSON-THERM1
+LINK-THERM1
+RECOVERY-DEBT1
+RECOVERY-SCENARIO1
+```
+
+Relationship heating uses the executable electrical dissipation proxy:
+
+```math
+P_{pq}=I_{pq}^2R_{pq}.
+```
+
+This separates high interaction through a good channel from high interaction through a high-resistance channel.
+
+A slow damage state accumulates only when link heat remains above the engineering overheat threshold.
+
+For people, PERSON-LOAD1 combined load is used as the heat-input proxy and existing recovery inertia defines baseline cooling capacity.
+
+Recovery scenarios compare declared mechanism bundles. They do not assert that a holiday, mountain trip, or other destination has a validated causal effect.
+
+The own executable calibration is THERM-CAL1 with 10 directional gates.
+
+No external clinical or relationship-outcome validation is claimed.

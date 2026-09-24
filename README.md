@@ -912,3 +912,8 @@ Adds a fixed 34-case direction benchmark and 4-case localization benchmark, comp
 **[HISTORY-DATA1 — provenance for real blind validation](HISTORY_DATA1.md)**
 
 Separates retrospective hypothesis records from genuine prospective blind-validation candidates, freezes model/cutoff/horizon before outcome evaluation, and prevents already-known future information from being counted as predictive evidence.
+
+
+**[PERSON-THERM1 / LINK-THERM1 / RECOVERY-SCENARIO1](THERMAL_RECOVERY.md)**
+
+Adds thermal memory over person load and link dissipation `I^2R`, slow recovery debt, link damage, and hypothetical recovery-scenario comparison such as short break, work disconnect, deep recovery, staged cooling, or a mountain-style mechanism bundle.

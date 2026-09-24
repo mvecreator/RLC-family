@@ -21,11 +21,15 @@ try:
     from simulator import person_network_solver as person_net
     from simulator import person_time_solver as person_time
     from simulator import person_family_safety as family_safety
+    from simulator import thermal_recovery as thermal_recovery
+    from simulator import recovery_scenarios as recovery_scenarios
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
     import person_time_solver as person_time
     import person_family_safety as family_safety
+    import thermal_recovery
+    import recovery_scenarios
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -387,6 +391,46 @@ def solve_problem(scenario, problem):
         if flags is not None and not isinstance(flags, dict):
             raise core.ScenarioError("relationship_flags must be object")
         return family_safety.assess(scenario, timeline, flags)
+    if ptype == "family_thermal":
+        timeline = problem.get("timeline")
+        if not isinstance(timeline, dict):
+            raise core.ScenarioError("family_thermal requires timeline object")
+        family = family_safety.assess(scenario, timeline)
+        thermal_rows = thermal_recovery.integrate_thermal(
+            scenario, family["trajectory"]
+        )
+        return {
+            "solver_version": VERSION,
+            "problem_type": "family_thermal",
+            "scenario_name": family["scenario_name"],
+            "trajectory": thermal_rows,
+            "summary": thermal_recovery.summarize_thermal(thermal_rows),
+            "boundary": (
+                "Thermal states are project engineering analogies; they are not "
+                "medical temperatures or relationship-break probabilities."
+            ),
+        }
+    if ptype == "recovery_scenarios":
+        timeline = problem.get("timeline")
+        if not isinstance(timeline, dict):
+            raise core.ScenarioError(
+                "recovery_scenarios requires timeline object"
+            )
+        cutoff_day = problem.get("cutoff_day")
+        if cutoff_day is None:
+            raise core.ScenarioError(
+                "recovery_scenarios requires cutoff_day"
+            )
+        profiles = problem.get("profiles")
+        if profiles is not None and not isinstance(profiles, list):
+            raise core.ScenarioError("profiles must be list or null")
+        return recovery_scenarios.compare_profiles(
+            scenario,
+            timeline,
+            float(cutoff_day),
+            profile_names=profiles,
+            lookback_days=float(problem.get("lookback_days", 3.0)),
+        )
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {
