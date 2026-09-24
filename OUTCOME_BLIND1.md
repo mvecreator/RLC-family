@@ -278,3 +278,22 @@ localization accuracy > baseline
 would be interesting.
 
 But the strongest evidence would come from repeating that advantage on records not used to choose the model coefficients.
+
+
+## Stronger baseline: linear trend
+
+OUTCOME-BENCH1 adds a second baseline beyond persistence.
+
+`linear_trend_baseline` fits the recent slope of the accumulated person/link state using prefix data only and extrapolates it across the horizon.
+
+This prevents a weak persistence baseline from making the mechanistic projection look artificially strong.
+
+The benchmark and family runner now report all three predictors:
+
+```text
+RLC projection
+persistence
+linear trend
+```
+
+See [OUTCOME-BENCH1](OUTCOME_BENCH1.md).
