@@ -419,13 +419,25 @@ def simulate_person_timeline(scenario, timeline):
     shares = _source_weights(scenario, base_ir["nodes"])
     index = {pid: i for i, pid in enumerate(node_ids)}
 
-    snapshot = pnet.solve_network(scenario)
-    snap_by = {x["id"]: x for x in snapshot["nodes"]}
-    v0 = [snap_by[pid]["voltage_re"] for pid in node_ids]
-    il0 = [0.0 for _ in node_ids]
-    base_memory = float(scenario.get("отношения", {}).get("накопленная_память", 0.2))
+    global_ir = core.compile_scenario(scenario)
+    finance = global_ir["finance"]
+    base_fin_stress, _, _ = legacy_time._financial_stress(
+        global_ir, finance["reserve"]
+    )
+    financial_drive_gain = float(cfg.get("financial_drive_gain", 0.20))
+    base_drive = global_ir["analysis"]["total_drive_voltage"] * (
+        1.0 + financial_drive_gain * base_fin_stress
+    )
+
+    # Start from a constant-input equilibrium of the parallel PERSON2 nodes:
+    # v_p = 0 and i_L,p carries the baseline injected current. This avoids
+    # treating the frequency-domain PERSON-NET1 phasor as a time-domain state.
+    v0 = [0.0 for _ in node_ids]
+    il0 = [base_drive * shares[pid] for pid in node_ids]
+    base_memory = float(
+        scenario.get("отношения", {}).get("накопленная_память", 0.2)
+    )
     mem0 = [pm.clip(base_memory, 0.0, 1.0) for _ in node_ids]
-    finance = core.compile_scenario(scenario)["finance"]
     state = _pack(v0, il0, mem0, finance["reserve"], finance["debt"])
     state = _apply_impulses(state, 0.0, events, index)
 
