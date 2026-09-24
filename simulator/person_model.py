@@ -9,8 +9,10 @@ from copy import deepcopy
 
 try:
     from simulator import rlc_family_sim as core
+    from simulator import link_semiconductor as semi
 except ModuleNotFoundError:
     import rlc_family_sim as core
+    import link_semiconductor as semi
 
 VERSION = "RLC-FAMILY-PERSON2-0.1"
 
@@ -310,7 +312,12 @@ def compile_link_semantics(item, default_quality, name, source):
         "semantic_source": semantics_source,
         "source": source,
     }
-    return refresh_link_semantics(link)
+    refresh_link_semantics(link)
+    try:
+        link.update(semi.compile_element(item, link["R_link"]))
+    except ValueError as e:
+        raise core.ScenarioError(f"{name}: {e}") from e
+    return link
 
 
 def _compile_links(scenario, nodes, cfg):
