@@ -887,3 +887,8 @@ Directed PERSON-TIME2 gates, calm/stress family scenarios, ensemble calibration,
 **[LINK-SEM1 — semantic relationship channels](LINK_SEMANTICS.md)**
 
 Relationship links now separate communication quality, contact frequency, availability and hostility. Low contact no longer automatically means a bad relationship; legacy `quality` remains backward compatible.
+
+
+**[PERSON-LOAD-CAL1 — calibrated load for each family member](PERSON_LOAD_CALIBRATION.md)**
+
+Calibrates individual accumulated load with persistence-aware bands, adds sustained direct forcing exposure, and emits a separate load/recommendation summary for every adult and child PERSON2 node.
