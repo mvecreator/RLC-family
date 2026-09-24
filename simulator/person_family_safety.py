@@ -56,9 +56,18 @@ def _incident_link_load(sample, pid):
     for link in sample["links"]:
         if pid not in (link["from"], link["to"]):
             continue
-        poor = 1.0 - clip01(link["quality"])
+        communication_quality = clip01(
+            link.get("communication_quality", link["quality"])
+        )
+        hostility = clip01(
+            link.get("hostility", 1.0 - communication_quality)
+        )
+        friction = (
+            0.65 * (1.0 - communication_quality)
+            + 0.35 * hostility
+        )
         flow = norm(link["current_abs"], 0.15)
-        values.append(poor * flow)
+        values.append(friction * flow)
     return sum(values) / len(values) if values else 0.0
 
 
@@ -90,19 +99,35 @@ def instantaneous_components(sample):
         a = str(link["from"])
         b = str(link["to"])
         key = _link_key(link)
-        quality = clip01(link["quality"])
-        poor = 1.0 - quality
+        transmission = clip01(link["quality"])
+        communication_quality = clip01(
+            link.get("communication_quality", transmission)
+        )
+        contact_frequency = clip01(link.get("contact_frequency", 1.0))
+        availability = clip01(link.get("availability", 1.0))
+        hostility = clip01(
+            link.get("hostility", 1.0 - communication_quality)
+        )
+        poor_communication = 1.0 - communication_quality
+        relational_friction = (
+            0.65 * poor_communication
+            + 0.35 * hostility
+        )
         flow = norm(link["current_abs"], 0.15)
         mem = 0.5 * (
             clip01(nodes[a]["memory"]) + clip01(nodes[b]["memory"])
         )
         gap = norm(nodes[a]["voltage"] - nodes[b]["voltage"], 0.20)
 
-        # High current is not itself conflict. Interaction contributes to
-        # strain mainly when the channel is poor.
-        stressed_interaction = flow * (0.20 + 0.80 * poor)
+        # LINK-SEM1: low contact/availability reduce transport but are not
+        # conflict by themselves. Stress comes from communication difficulty
+        # and hostility, while current measures how much interaction traverses
+        # the currently available channel.
+        stressed_interaction = flow * (
+            0.20 + 0.80 * relational_friction
+        )
         combined = clip01(
-            0.30 * poor
+            0.30 * relational_friction
             + 0.25 * stressed_interaction
             + 0.25 * mem
             + 0.10 * gap
@@ -111,8 +136,14 @@ def instantaneous_components(sample):
         links[key] = {
             "from": a,
             "to": b,
-            "quality": quality,
-            "poor_quality": poor,
+            "quality": transmission,
+            "effective_transmission": transmission,
+            "communication_quality": communication_quality,
+            "contact_frequency": contact_frequency,
+            "availability": availability,
+            "hostility": hostility,
+            "poor_communication": poor_communication,
+            "relational_friction": relational_friction,
             "interaction": flow,
             "stressed_interaction": stressed_interaction,
             "memory_mean": mem,
@@ -204,7 +235,13 @@ def _max_state(rows, group, key):
 
 def _mean_components(rows, key):
     fields = (
-        "poor_quality",
+        "effective_transmission",
+        "communication_quality",
+        "contact_frequency",
+        "availability",
+        "hostility",
+        "poor_communication",
+        "relational_friction",
         "stressed_interaction",
         "memory_mean",
         "voltage_gap",
@@ -263,13 +300,23 @@ def recommendations_for_link(key, summary, safety):
                 "interpreting all strain as an interpersonal failure."
             ),
         })
-    if mean["poor_quality"] >= 0.30:
+    if mean["poor_communication"] >= 0.30:
         actions.append({
             "action": "PROTECT_COMMUNICATION_CHANNEL",
-            "reason": "poor_link_quality",
+            "reason": "poor_communication_quality",
             "message": (
-                "Create lower-conflict communication windows and avoid repeating "
-                "the same high-load exchange while the channel is degraded."
+                "Create clearer, lower-conflict communication windows and avoid "
+                "repeating the same high-load exchange while communication quality "
+                "is degraded."
+            ),
+        })
+    if mean["hostility"] >= 0.30:
+        actions.append({
+            "action": "DEESCALATE_HOSTILITY",
+            "reason": "hostility",
+            "message": (
+                "The strain is not just low contact: explicit hostility is elevated. "
+                "Prioritize de-escalation before increasing interaction volume."
             ),
         })
     if mean["memory_mean"] >= 0.45:
