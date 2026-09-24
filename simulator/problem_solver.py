@@ -20,10 +20,12 @@ try:
     from simulator import rlc_family_sim as core
     from simulator import person_network_solver as person_net
     from simulator import person_time_solver as person_time
+    from simulator import person_family_safety as family_safety
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
     import person_time_solver as person_time
+    import person_family_safety as family_safety
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -377,6 +379,14 @@ def solve_problem(scenario, problem):
         return person_time.simulate_person_timeline(scenario, timeline)
     if ptype == "person_network":
         return person_net.solve_network(scenario)
+    if ptype == "family_safety":
+        timeline = problem.get("timeline")
+        if not isinstance(timeline, dict):
+            raise core.ScenarioError("family_safety requires timeline object")
+        flags = problem.get("relationship_flags")
+        if flags is not None and not isinstance(flags, dict):
+            raise core.ScenarioError("relationship_flags must be object")
+        return family_safety.assess(scenario, timeline, flags)
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {

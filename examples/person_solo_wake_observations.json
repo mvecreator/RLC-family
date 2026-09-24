@@ -1,0 +1,35 @@
+{
+  "name": "PERSON-SOLO1 observed 25-hour drift with progressive biphasic sleep",
+  "calendar_day_interval_hours": 24.0,
+  "wake_observations": [
+    {"day": 0, "wake_offset_hours": 0.0},
+    {"day": 1, "wake_offset_hours": 1.0},
+    {"day": 2, "wake_offset_hours": 2.0},
+    {"day": 3, "wake_offset_hours": 3.0},
+    {"day": 4, "wake_offset_hours": 4.0},
+    {"day": 5, "wake_offset_hours": 5.0},
+    {"day": 6, "wake_offset_hours": 6.0},
+    {"day": 7, "wake_offset_hours": 7.0}
+  ],
+  "sleep_architecture": {
+    "transition": "gradual_monophasic_to_biphasic",
+    "final_sleep_bout_count": 2,
+    "final_bout_duration_relation": "approximately_equal",
+    "final_bout_sleep_fraction_each": 0.5,
+    "inter_bout_wake_gap_hours": {
+      "min": 2.0,
+      "max": 3.0
+    },
+    "total_sleep_hours_per_cycle": null,
+    "note": "The sleep episode gradually split into two approximately equal sleep bouts; later a 2-3 hour waking interval appeared between them."
+  },
+  "historical_caffeine": {
+    "description": "aggregate forcing proxy for the earlier 1-2 cups every day",
+    "cups_per_day_range": [1, 2]
+  },
+  "current_caffeine": {
+    "description": "upper end of the current stated 3-4 cups per week",
+    "cups_per_week": 4
+  },
+  "calibration_scope": "Wake observations identify phase drift; sleep_architecture constrains fragmentation. Neither establishes caffeine as the cause."
+}
