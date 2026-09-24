@@ -15,7 +15,7 @@ class MultiLinkTests(unittest.TestCase):
     def test_calibration_suite_passes(self):
         result = cal.suite()
         self.assertTrue(result["all_pass"])
-        self.assertEqual(result["passed"], 11)
+        self.assertEqual(result["passed"], 12)
 
     def test_legacy_single_link_keeps_old_family_key(self):
         scenario = cal.base_scenario([
@@ -59,6 +59,21 @@ class MultiLinkTests(unittest.TestCase):
         )
         self.assertGreater(two, one)
         self.assertLessEqual(two, 1.0)
+
+
+    def test_distinct_relationship_pairs_keep_legacy_average(self):
+        sample = cal.safety_sample(2)
+        sample["links"][1]["to"] = "c"
+        sample["links"][1]["pair_id"] = "a->c"
+        sample["links"][1]["current_abs"] = 0.06
+
+        actual = family_safety._incident_link_load(sample, "a")
+        friction = 0.65 * (1.0 - 0.60) + 0.35 * 0.20
+        expected = (
+            friction * (0.12 / 0.15)
+            + friction * (0.06 / 0.15)
+        ) / 2.0
+        self.assertAlmostEqual(actual, expected, places=12)
 
 
 if __name__ == "__main__":
