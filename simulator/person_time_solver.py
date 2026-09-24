@@ -14,12 +14,14 @@ try:
     from simulator import person_model as pm
     from simulator import person_network_solver as pnet
     from simulator import link_semiconductor as semi
+    from simulator import channel_coupling as cc
     from simulator import rlc_family_sim as core
     from simulator import time_solver as legacy_time
 except ModuleNotFoundError:
     import person_model as pm
     import person_network_solver as pnet
     import link_semiconductor as semi
+    import channel_coupling as cc
     import rlc_family_sim as core
     import time_solver as legacy_time
 
@@ -374,6 +376,18 @@ def _network_at(base_scenario, base_ir, events, t):
     return nodes, links, person_drive
 
 
+def _apply_channel_couplings(base_ir, links, voltages, index):
+    rules = base_ir.get("channel_couplings", [])
+    return cc.apply_couplings(
+        links,
+        voltages,
+        index,
+        rules,
+        semi,
+        pm.refresh_link_semantics,
+    )
+
+
 def _unpack(state, n):
     v = state[:n]
     il = state[n:2*n]
@@ -392,6 +406,9 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
     index = {node["id"]: i for i, node in enumerate(nodes)}
+    links, _coupling_effects = _apply_channel_couplings(
+        base_ir, links, v, index
+    )
 
     finance, fin_stress, income, load = _finance_state(scenario, reserve)
     global_ir = core.compile_scenario(scenario)
@@ -514,6 +531,9 @@ def _sample(t, state, scenario, base_ir, events, cfg):
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
     index = {node["id"]: i for i, node in enumerate(nodes)}
+    links, coupling_effects = _apply_channel_couplings(
+        base_ir, links, v, index
+    )
     finance, fin_stress, income, load = _finance_state(scenario, reserve)
 
     node_rows = []
@@ -578,6 +598,7 @@ def _sample(t, state, scenario, base_ir, events, cfg):
         "monthly_income_equivalent": income,
         "monthly_load_equivalent": load,
         "active_events": [e["id"] for e in events if _active(e, t)],
+        "channel_coupling_effects": coupling_effects,
     }
 
 
@@ -765,6 +786,7 @@ def simulate_person_timeline(scenario, timeline):
             "steps": steps,
         },
         "events": events,
+        "channel_couplings": base_ir.get("channel_couplings", []),
         "samples": samples,
         "summary": summary,
         "family_interpretation": interpret(summary),
