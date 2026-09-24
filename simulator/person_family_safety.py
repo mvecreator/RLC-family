@@ -267,6 +267,9 @@ def integrate_trajectory(person_time_result):
             },
             "financial_stress": sample["financial_stress"],
             "active_events": sample["active_events"],
+            "channel_coupling_effects": sample.get(
+                "channel_coupling_effects", []
+            ),
         })
         prev_day = day
     return rows
@@ -375,6 +378,50 @@ def _summarize_pairs(rows):
                 "value": peak_strain[1],
             },
             "highest_strain_branch": highest_branch,
+        }
+    return out
+
+
+def _summarize_channel_couplings(rows):
+    grouped = {}
+    for row in rows:
+        day = row["day"]
+        for effect in row.get("channel_coupling_effects", []):
+            cid = effect["coupling_id"]
+            item = grouped.setdefault(cid, {
+                "source_link_id": effect["source_link_id"],
+                "target_link_id": effect["target_link_id"],
+                "target_field": effect["target_field"],
+                "samples": [],
+            })
+            item["samples"].append({
+                "day": day,
+                "delta": float(effect["delta"]),
+                "source_value": float(effect["source_value"]),
+                "activation_excess": float(effect["activation_excess"]),
+            })
+
+    out = {}
+    for cid, item in grouped.items():
+        samples = item.pop("samples")
+        peak = max(samples, key=lambda x: abs(x["delta"]))
+        active_days = [
+            sample["day"]
+            for sample in samples
+            if abs(sample["delta"]) > 1e-12
+        ]
+        out[cid] = {
+            **item,
+            "peak_abs_delta": {
+                "day": peak["day"],
+                "value": abs(peak["delta"]),
+                "signed_delta": peak["delta"],
+            },
+            "mean_abs_delta": (
+                sum(abs(sample["delta"]) for sample in samples)
+                / len(samples)
+            ),
+            "first_active_day": active_days[0] if active_days else None,
         }
     return out
 
@@ -549,6 +596,7 @@ def summarize(rows, relationship_flags=None):
             if persons else None
         ),
         "relationship_safety_override": safety,
+        "channel_couplings": _summarize_channel_couplings(rows),
         "family_stress_is_diagnostic": False,
         "breakdown_probability_computed": False,
     }
