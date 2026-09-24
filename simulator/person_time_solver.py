@@ -95,6 +95,25 @@ def _compile_events(spec, node_ids, link_keys):
             raise core.ScenarioError(
                 f"event {idx}: memory impulse requires target_person"
             )
+        link_mutation_keys = (
+            "link_quality_set", "link_quality_add",
+            "качество_связи", "изменить_качество_связи",
+            "communication_quality_set", "communication_quality_add",
+            "установить_качество_общения", "изменить_качество_общения",
+            "contact_frequency_set", "contact_frequency_add",
+            "установить_частоту_контакта", "изменить_частоту_контакта",
+            "availability_set", "availability_add",
+            "установить_доступность", "изменить_доступность",
+            "hostility_set", "hostility_add",
+            "установить_враждебность", "изменить_враждебность",
+        )
+        if target_link is None and any(
+            key in item and item.get(key) not in (None, 0, 0.0)
+            for key in link_mutation_keys
+        ):
+            raise core.ScenarioError(
+                f"event {idx}: link semantic mutation requires target_link"
+            )
         out.append({
             "id": str(item.get("id", f"event-{idx+1}")),
             "label": str(item.get("описание", item.get("label", item.get("id", f"Событие {idx+1}")))),
