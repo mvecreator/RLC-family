@@ -1,0 +1,89 @@
+{
+  "название": "PERSON2: инвертированные рабочие и домашние роли",
+  "person_model": {
+    "gender_prior_strength": 0.15,
+    "legacy_gender_profile": true
+  },
+  "персонажи": [
+    {
+      "id": "husband",
+      "type": "adult",
+      "gender": "male",
+      "age": 38,
+      "role": {
+        "work_provider": 0.20,
+        "decision_initiative": 0.35,
+        "external_activity": 0.25,
+        "caregiver": 0.95,
+        "domestic_load": 0.90,
+        "recovery_inertia": 0.45
+      },
+      "temperament_bias": 0.05
+    },
+    {
+      "id": "wife",
+      "type": "adult",
+      "gender": "female",
+      "age": 36,
+      "role": {
+        "work_provider": 0.95,
+        "decision_initiative": 0.90,
+        "external_activity": 0.85,
+        "caregiver": 0.25,
+        "domestic_load": 0.30,
+        "recovery_inertia": 0.55
+      },
+      "temperament_bias": -0.05
+    },
+    {
+      "id": "son",
+      "type": "child",
+      "gender": "male",
+      "age": 13,
+      "temperament_bias": -0.10
+    },
+    {
+      "id": "daughter",
+      "type": "child",
+      "gender": "female",
+      "age": 8,
+      "temperament_bias": 0.20
+    }
+  ],
+  "связи_персонажей": [
+    {"from":"husband","to":"wife","quality":0.78},
+    {"from":"husband","to":"son","quality":0.86},
+    {"from":"husband","to":"daughter","quality":0.90},
+    {"from":"wife","to":"son","quality":0.66},
+    {"from":"wife","to":"daughter","quality":0.74},
+    {"from":"son","to":"daughter","quality":0.58}
+  ],
+  "отношения": {
+    "мужская_емкость": 0.50,
+    "женская_индуктивность": 0.50,
+    "сопротивление_детей": [0.45, 0.55],
+    "топология_детей": "последовательно",
+    "напряженность": 0.42,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.24,
+    "подростковая_нелинейность": 0.35
+  },
+  "связь": {
+    "качество_проводника": 0.76,
+    "усиление_эмоций": 1.05,
+    "фильтр_критического_мышления": 0.75,
+    "усиление_антенны": 0.40,
+    "внешний_фон": 0.20,
+    "сброс_через_антенну": 0.35,
+    "согласование_собеседника": 0.70
+  },
+  "финансы": {
+    "доходы_в_месяц": [5200],
+    "ипотека_в_месяц": 1450,
+    "базовые_расходы_в_месяц": 2200,
+    "прочие_расходы_в_месяц": 550,
+    "резерв": 10000,
+    "долг_по_ипотеке": 215000,
+    "ставка_годовая": 0.045
+  }
+}
