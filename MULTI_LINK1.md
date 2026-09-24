@@ -480,7 +480,7 @@ python3 -m unittest tests.test_family_validation_cases -v
 Expected own gate:
 
 \`\`\`text
-MULTI-LINK-CAL1 11/11 PASS
+MULTI-LINK-CAL1 12/12 PASS
 \`\`\`
 
 No founder/local WSL PASS is claimed until this executable gate is run.
