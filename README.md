@@ -927,3 +927,8 @@ Adds RESISTIVE, DIODE, MOSFET and BREAKDOWN_DIODE relationship elements. Employe
 **[MULTI-LINK1 — parallel social channels](MULTI_LINK1.md)**
 
 Upgrades PERSON2 into a multigraph: the same pair of people can carry independent personal, work, financial or other channels, each with its own `link_id`, element type, current, heat, damage, strain and events. Legacy one-link scenarios keep their old keys.
+
+
+**[CHANNEL-COUPLING1 — explicit modulation between channels](CHANNEL_COUPLING1.md)**
+
+Adds declared branch-to-branch modulation on top of MULTI-LINK1. Rules read frozen base source signals such as current, |VI| power, communication quality or MOSFET gate, then simultaneously modify explicit target fields with full provenance. No social coupling is created automatically.
