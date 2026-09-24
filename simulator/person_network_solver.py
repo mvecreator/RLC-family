@@ -72,6 +72,12 @@ def solve_network(scenario):
 
     nodes=pir["nodes"]
     links=pir["links"]
+    if pir.get("channel_couplings"):
+        raise core.ScenarioError(
+            "PERSON-NET1 cannot solve CHANNEL-COUPLING1 rules because "
+            "coupling source signals depend on the current dynamic state; "
+            "use PERSON-TIME2 instead."
+        )
     nonlinear = [
         f"{link.get('link_id', link['from'] + '->' + link['to'])}:"
         f"{link.get('element_type')}"
