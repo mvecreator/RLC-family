@@ -907,3 +907,8 @@ Hides future windows from the predictor and scores recovery/accumulation/stabili
 **[OUTCOME-BENCH1 — first blind prediction corpus](OUTCOME_BENCH1.md)**
 
 Adds a fixed 34-case direction benchmark and 4-case localization benchmark, compares RLC projection with persistence and linear-trend baselines, and explicitly separates continuation performance from hidden regime-shift failures.
+
+
+**[HISTORY-DATA1 — provenance for real blind validation](HISTORY_DATA1.md)**
+
+Separates retrospective hypothesis records from genuine prospective blind-validation candidates, freezes model/cutoff/horizon before outcome evaluation, and prevents already-known future information from being counted as predictive evidence.
