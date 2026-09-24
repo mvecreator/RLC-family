@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import itertools
+import math
 from copy import deepcopy
 
 try:
@@ -224,6 +225,94 @@ def link_resistance(quality):
     return 0.15 + 2.35 * (1.0 - quality)
 
 
+def refresh_link_semantics(link):
+    """Recompute LINK-SEM1 derived transport fields in-place.
+
+    communication_quality describes how well actual communication works;
+    contact_frequency/availability describe how much channel is present;
+    hostility is a separate stress semantic and does not directly change
+    electrical conductance.
+
+    The compatibility field "quality" now means effective transmission.
+    """
+    q = _num(
+        link.get("communication_quality", link.get("quality", 0.70)),
+        "link.communication_quality", 0.0, 1.0,
+    )
+    contact = _num(
+        link.get("contact_frequency", 1.0),
+        "link.contact_frequency", 0.0, 1.0,
+    )
+    availability = _num(
+        link.get("availability", 1.0),
+        "link.availability", 0.0, 1.0,
+    )
+    hostility = _num(
+        link.get("hostility", 0.0),
+        "link.hostility", 0.0, 1.0,
+    )
+    capacity = math.sqrt(contact * availability)
+    transmission = clip(q * capacity, 0.0, 1.0)
+    link["communication_quality"] = q
+    link["contact_frequency"] = contact
+    link["availability"] = availability
+    link["hostility"] = hostility
+    link["contact_capacity"] = capacity
+    link["effective_transmission"] = transmission
+    link["quality"] = transmission
+    link["R_link"] = link_resistance(transmission)
+    return link
+
+
+def compile_link_semantics(item, default_quality, name, source):
+    """Compile legacy quality or explicit LINK-SEM1 semantics.
+
+    Legacy {"quality": q} preserves the old electrical transport exactly and
+    maps low quality to relational friction for family-safety compatibility.
+
+    Explicit semantic links do not equate low contact with hostility.
+    """
+    semantic_keys = {
+        "communication_quality", "contact_frequency", "availability", "hostility"
+    }
+    explicit_semantics = any(key in item for key in semantic_keys)
+    q = _num(
+        item.get("communication_quality", item.get("quality", default_quality)),
+        f"{name}.communication_quality", 0.0, 1.0,
+    )
+    if explicit_semantics:
+        contact = _num(
+            item.get("contact_frequency", 1.0),
+            f"{name}.contact_frequency", 0.0, 1.0,
+        )
+        availability = _num(
+            item.get("availability", 1.0),
+            f"{name}.availability", 0.0, 1.0,
+        )
+        hostility = _num(
+            item.get("hostility", 0.0),
+            f"{name}.hostility", 0.0, 1.0,
+        )
+        semantics_source = "LINK-SEM1"
+    else:
+        # Backward compatibility: old quality carried both channel quality and
+        # relational difficulty. Keep the transport exactly unchanged.
+        contact = 1.0
+        availability = 1.0
+        hostility = 1.0 - q
+        semantics_source = "legacy-quality"
+
+    link = {
+        "communication_quality": q,
+        "contact_frequency": contact,
+        "availability": availability,
+        "hostility": hostility,
+        "semantic_source": semantics_source,
+        "source": source,
+    }
+    return refresh_link_semantics(link)
+
+
 def _compile_links(scenario, nodes, cfg):
     raw = scenario.get("связи_персонажей")
     node_ids = {n["id"] for n in nodes}
@@ -234,10 +323,14 @@ def _compile_links(scenario, nodes, cfg):
         )
         quality = _num(global_quality, "связь.качество_проводника", 0.0, 1.0)
         for a, b in itertools.combinations(sorted(node_ids), 2):
-            links.append({
-                "from": a, "to": b, "quality": quality,
-                "R_link": link_resistance(quality), "source": "default-complete-graph",
-            })
+            link = compile_link_semantics(
+                {"quality": quality},
+                quality,
+                f"link {a}-{b}",
+                "default-complete-graph",
+            )
+            link.update({"from": a, "to": b})
+            links.append(link)
         return links
     if not isinstance(raw, list):
         raise core.ScenarioError("связи_персонажей must be list")
@@ -253,11 +346,14 @@ def _compile_links(scenario, nodes, cfg):
         if key in seen:
             raise core.ScenarioError(f"duplicate link: {a}-{b}")
         seen.add(key)
-        quality = _num(item.get("quality", cfg["default_link_quality"]), f"link {a}-{b}.quality", 0.0, 1.0)
-        links.append({
-            "from": a, "to": b, "quality": quality,
-            "R_link": link_resistance(quality), "source": "explicit",
-        })
+        link = compile_link_semantics(
+            item,
+            cfg["default_link_quality"],
+            f"link {a}-{b}",
+            "explicit",
+        )
+        link.update({"from": a, "to": b})
+        links.append(link)
     return links
 
 
