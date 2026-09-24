@@ -292,6 +292,19 @@ def suite():
         safety_sample(2), "a"
     )
 
+    distinct = safety_sample(2)
+    distinct["links"][1]["to"] = "c"
+    distinct["links"][1]["pair_id"] = "a->c"
+    distinct["links"][1]["current_abs"] = 0.06
+    distinct_incident = family_safety._incident_link_load(
+        distinct, "a"
+    )
+    friction = 0.65 * (1.0 - 0.60) + 0.35 * 0.20
+    expected_distinct = (
+        friction * (0.12 / 0.15)
+        + friction * (0.06 / 0.15)
+    ) / 2.0
+
     checks = {
         "ML01_LEGACY_SINGLE_ID_PRESERVED": (
             legacy["links"][0]["link_id"] == "a->b"
@@ -354,6 +367,9 @@ def suite():
                 "employer-employee.work",
             }
         ),
+        "ML12_DISTINCT_PAIR_AVERAGING_STAYS_LEGACY": (
+            abs(distinct_incident - expected_distinct) < 1e-12
+        ),
     }
 
     return {
@@ -369,6 +385,8 @@ def suite():
             "r2_voltage_drop_abs": r2["current_abs"] * r2["R_link"],
             "incident_one_branch": incident_one,
             "incident_two_branches": incident_two,
+            "distinct_pair_incident": distinct_incident,
+            "distinct_pair_expected_legacy": expected_distinct,
             "pair_summary": pair,
         },
         "checks": checks,
