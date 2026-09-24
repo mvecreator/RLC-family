@@ -213,18 +213,19 @@ def care_signals(rows, observations, clinical=None):
             ),
         })
 
-    # Conservative project rule: persistent unusual sleep architecture plus
-    # sustained elevated load for two weeks should trigger routine clinician
-    # review. 14 days is a project guardrail, not a medical diagnostic cutoff.
-    if persistent_pattern and elevated_day is not None and len(rows) > 14:
+    # Conservative project rule: a persistent, unusual sleep architecture
+    # should trigger routine clinician review before the numeric load becomes
+    # extreme. 14 days is an internal engineering guardrail, not a validated
+    # medical diagnostic cutoff.
+    if persistent_pattern and len(rows) > 14:
         signals.append({
             "level": "GP_REVIEW",
-            "day": max(14, elevated_day),
-            "reason": "persistent_sleep_disruption_plus_accumulated_load",
+            "day": 14,
+            "reason": "persistent_unusual_sleep_pattern",
             "message": (
-                "If this unusual sleep pattern is persisting, arrange a "
-                "routine clinician/GP review rather than waiting for the "
-                "numeric load to become extreme."
+                "If this unusual sleep pattern is still persisting after "
+                "about two weeks, arrange a routine clinician/GP review rather "
+                "than waiting for the numeric load to become extreme."
             ),
         })
 
