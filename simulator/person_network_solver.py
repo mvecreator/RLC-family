@@ -125,6 +125,19 @@ def solve_network(scenario):
             "from":link["from"],
             "to":link["to"],
             "quality":link["quality"],
+            "effective_transmission":link.get(
+                "effective_transmission", link["quality"]
+            ),
+            "communication_quality":link.get(
+                "communication_quality", link["quality"]
+            ),
+            "contact_frequency":link.get("contact_frequency", 1.0),
+            "availability":link.get("availability", 1.0),
+            "hostility":link.get(
+                "hostility",
+                1.0 - link.get("communication_quality", link["quality"]),
+            ),
+            "semantic_source":link.get("semantic_source", "legacy-quality"),
             "R_link":link["R_link"],
             "current_re":current.real,
             "current_im":current.imag,
