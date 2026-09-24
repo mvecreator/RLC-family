@@ -88,3 +88,32 @@ def run(observations, cutoff_progress=0.65, horizon_progress=0.35):
             "must not be invented to rescue the prediction."
         ),
     }
+
+
+def main():
+    import argparse
+    import json
+    from simulator import person_solo_calibration as solo
+
+    p = argparse.ArgumentParser(
+        description="Run blind SOLO sleep-resolution check"
+    )
+    p.add_argument(
+        "observations",
+        nargs="?",
+        default="examples/person_solo_wake_observations.json",
+    )
+    p.add_argument("--cutoff-progress", type=float, default=0.65)
+    p.add_argument("--horizon-progress", type=float, default=0.35)
+    args = p.parse_args()
+
+    result = run(
+        solo.load_json(args.observations),
+        cutoff_progress=args.cutoff_progress,
+        horizon_progress=args.horizon_progress,
+    )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
