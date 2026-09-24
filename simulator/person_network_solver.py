@@ -11,9 +11,11 @@ from pathlib import Path
 
 try:
     from simulator import person_model as pm
+    from simulator import link_semiconductor as semi
     from simulator import rlc_family_sim as core
 except ModuleNotFoundError:
     import person_model as pm
+    import link_semiconductor as semi
     import rlc_family_sim as core
 
 VERSION = "RLC-FAMILY-PERSON-NET1-0.1"
@@ -70,6 +72,17 @@ def solve_network(scenario):
 
     nodes=pir["nodes"]
     links=pir["links"]
+    nonlinear = [
+        f"{link['from']}->{link['to']}:{link.get('element_type')}"
+        for link in links
+        if semi.is_nonlinear(link)
+    ]
+    if nonlinear:
+        raise core.ScenarioError(
+            "PERSON-NET1 is a linear frequency-domain solver and cannot "
+            "solve LINK-SEMI1 nonlinear links; use PERSON-TIME2 instead. "
+            "Nonlinear links: " + ", ".join(nonlinear)
+        )
     n=len(nodes)
     index={node["id"]:i for i,node in enumerate(nodes)}
     matrix=[[0j for _ in range(n)] for _ in range(n)]
@@ -124,6 +137,7 @@ def solve_network(scenario):
         link_results.append({
             "from":link["from"],
             "to":link["to"],
+            "element_type":link.get("element_type","RESISTIVE"),
             "quality":link["quality"],
             "effective_transmission":link.get(
                 "effective_transmission", link["quality"]
@@ -144,6 +158,7 @@ def solve_network(scenario):
             "current_abs":abs(current),
             "phase_deg":math.degrees(cmath.phase(current)) if current else 0.0,
             "dissipation_proxy":abs(va-vb)**2/link["R_link"],
+            "power_model":"I^2R = |deltaV|^2/R for RESISTIVE links only",
         })
 
     max_node=max(node_results,key=lambda x:x["voltage_abs"])
