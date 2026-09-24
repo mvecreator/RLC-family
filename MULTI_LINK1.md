@@ -508,3 +508,22 @@ CHANNEL-COUPLING1
 
 Such coupling would make the circuit substantially richer, but it should only
 be added after MULTI-LINK1 itself is executable and stable.
+
+
+## CHANNEL-COUPLING1 extension
+
+MULTI-LINK1 defines independent branches.
+
+[CHANNEL-COUPLING1](CHANNEL_COUPLING1.md) optionally adds explicit directed modulation between them.
+
+The execution order is:
+
+```text
+base branch
+-> timeline event mutation
+-> freeze source signals
+-> simultaneous channel coupling
+-> branch current/power
+```
+
+Coupling does not change MULTI-LINK1 branch identity. Every target remains the same stable `link_id`.
