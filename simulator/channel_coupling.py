@@ -48,6 +48,17 @@ def _positive(value, name):
     return value
 
 
+
+def _unit_interval(value, name):
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"{name} must be number") from e
+    if value < 0.0 or value > 1.0:
+        raise ValueError(f"{name} must be in [0,1]")
+    return value
+
+
 def _gain(value, name):
     try:
         value = float(value)
@@ -110,6 +121,11 @@ def compile_couplings(scenario, links):
                 f"{cid}: source_signal must be one of "
                 + ", ".join(sorted(SOURCE_SIGNALS))
             )
+        if (
+            signal == "gate"
+            and by_id[source].get("element_type", "RESISTIVE") != "MOSFET"
+        ):
+            raise ValueError(f"{cid}: gate source requires MOSFET")
 
         field = str(item.get("target_field", "")).strip()
         if field not in TARGET_FIELDS:
@@ -142,9 +158,15 @@ def compile_couplings(scenario, links):
             item.get("source_scale", default_scale),
             f"{cid}.source_scale",
         )
-        threshold = clip01(item.get("threshold", 0.0))
+        threshold = _unit_interval(
+            item.get("threshold", 0.0),
+            f"{cid}.threshold",
+        )
         gain = _gain(item.get("gain", 0.0), f"{cid}.gain")
-        max_abs_effect = clip01(item.get("max_abs_effect", 1.0))
+        max_abs_effect = _unit_interval(
+            item.get("max_abs_effect", 1.0),
+            f"{cid}.max_abs_effect",
+        )
 
         out.append({
             "coupling_id": cid,
