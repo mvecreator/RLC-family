@@ -1,0 +1,23 @@
+{
+  "name": "PERSON-SOLO1 observed 25-hour drift",
+  "calendar_day_interval_hours": 24.0,
+  "wake_observations": [
+    {"day": 0, "wake_offset_hours": 0.0},
+    {"day": 1, "wake_offset_hours": 1.0},
+    {"day": 2, "wake_offset_hours": 2.0},
+    {"day": 3, "wake_offset_hours": 3.0},
+    {"day": 4, "wake_offset_hours": 4.0},
+    {"day": 5, "wake_offset_hours": 5.0},
+    {"day": 6, "wake_offset_hours": 6.0},
+    {"day": 7, "wake_offset_hours": 7.0}
+  ],
+  "historical_caffeine": {
+    "description": "aggregate forcing proxy for the earlier 1-2 cups every day",
+    "cups_per_day_range": [1, 2]
+  },
+  "current_caffeine": {
+    "description": "upper end of the current stated 3-4 cups per week",
+    "cups_per_week": 4
+  },
+  "calibration_scope": "The wake observations identify phase drift. They do not prove that caffeine caused the 25-hour period."
+}
