@@ -129,8 +129,9 @@ def compile_adult(person, cfg):
         raise core.ScenarioError("adult person requires id")
     role = role_balance(person)
     temperament = _num(person.get("temperament_bias", 0.0), f"{pid}.temperament_bias", -1.0, 1.0)
+    role_raw = person.get("role") or {}
     recovery = _num(
-        person.get("recovery_inertia", person.get("role", {}).get("recovery_inertia", 0.5)),
+        person.get("recovery_inertia", role_raw.get("recovery_inertia", 0.5)),
         f"{pid}.recovery_inertia", 0.0, 1.0,
     )
     legacy = gender_sign(person.get("gender")) * cfg["gender_prior_strength"]
