@@ -59,7 +59,7 @@ def _link_key(link):
 
 
 def _incident_link_load(sample, pid):
-    values = []
+    by_pair = {}
     for link in sample["links"]:
         if pid not in (link["from"], link["to"]):
             continue
@@ -74,16 +74,30 @@ def _incident_link_load(sample, pid):
             + 0.35 * hostility
         )
         flow = norm(link["current_abs"], 0.15)
-        values.append(friction * flow)
-    if not values:
-        return 0.0
-    # MULTI-LINK1: preserve the single-link value exactly while preventing
-    # extra parallel channels from diluting incident load through averaging.
-    remaining = 1.0
-    for value in values:
-        remaining *= 1.0 - clip01(value)
-    return clip01(1.0 - remaining)
+        pair = str(
+            link.get(
+                "pair_id",
+                "->".join(sorted((str(link["from"]), str(link["to"])))),
+            )
+        )
+        by_pair.setdefault(pair, []).append(
+            clip01(friction * flow)
+        )
 
+    if not by_pair:
+        return 0.0
+
+    pair_values = []
+    for values in by_pair.values():
+        # MULTI-LINK1: combine only parallel branches within the same pair.
+        # One branch remains exact; extra branches cannot dilute that pair.
+        remaining = 1.0
+        for value in values:
+            remaining *= 1.0 - value
+        pair_values.append(clip01(1.0 - remaining))
+
+    # Preserve the legacy behavior across distinct relationship pairs.
+    return sum(pair_values) / len(pair_values)
 
 def instantaneous_components(sample):
     nodes = _node_map(sample)
