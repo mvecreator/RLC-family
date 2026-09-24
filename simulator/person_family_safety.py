@@ -298,6 +298,73 @@ def _mean_components(rows, key):
     return out
 
 
+
+def _summarize_pairs(rows):
+    groups = {}
+    first_links = rows[0]["links"]
+    for link_id, item in first_links.items():
+        pid = item.get("pair_id", "->".join(sorted((item["from"], item["to"]))))
+        groups.setdefault(pid, []).append(link_id)
+
+    out = {}
+    for pid, branch_ids in groups.items():
+        current_series = []
+        power_series = []
+        strain_series = []
+        for row in rows:
+            current_series.append((
+                row["day"],
+                sum(
+                    float(row["links"][bid].get("current_abs_raw", 0.0))
+                    for bid in branch_ids
+                ),
+            ))
+            power_series.append((
+                row["day"],
+                sum(
+                    float(row["links"][bid].get("dissipation_power_proxy", 0.0))
+                    for bid in branch_ids
+                ),
+            ))
+            strain_series.append((
+                row["day"],
+                max(
+                    float(row["links"][bid]["accumulated_strain"])
+                    for bid in branch_ids
+                ),
+            ))
+
+        peak_current = max(current_series, key=lambda x: x[1])
+        peak_power = max(power_series, key=lambda x: x[1])
+        peak_strain = max(strain_series, key=lambda x: x[1])
+        highest_branch = max(
+            branch_ids,
+            key=lambda bid: max(
+                float(row["links"][bid]["accumulated_strain"])
+                for row in rows
+            ),
+        )
+
+        out[pid] = {
+            "branches": list(branch_ids),
+            "branch_count": len(branch_ids),
+            "peak_total_current_abs": {
+                "day": peak_current[0],
+                "value": peak_current[1],
+            },
+            "peak_total_dissipation_power_proxy": {
+                "day": peak_power[0],
+                "value": peak_power[1],
+            },
+            "peak_max_branch_strain": {
+                "day": peak_strain[0],
+                "value": peak_strain[1],
+            },
+            "highest_strain_branch": highest_branch,
+        }
+    return out
+
+
 def safety_override(flags=None):
     flags = flags or {}
     if not isinstance(flags, dict):
@@ -446,10 +513,20 @@ def summarize(rows, relationship_flags=None):
         max(links.items(), key=lambda kv: kv[1]["peak_strain"]["value"])[0]
         if links else None
     )
+    pairs = _summarize_pairs(rows)
+    highest_power_pair = (
+        max(
+            pairs.items(),
+            key=lambda kv: kv[1]["peak_total_dissipation_power_proxy"]["value"],
+        )[0]
+        if pairs else None
+    )
     return {
         "persons": persons,
         "links": links,
+        "pairs": pairs,
         "highest_strain_link": highest,
+        "highest_dissipation_pair": highest_power_pair,
         "highest_load_person": (
             max(
                 persons.items(),
