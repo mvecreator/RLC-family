@@ -9,14 +9,19 @@ or calculate the probability of relationship rupture.
 
 ## 1. Link dissipation
 
-For every PERSON2 relationship link:
+For every PERSON2 relationship link the universal dissipation proxy is:
+
+```math
+P_{pq}=|\Delta V_{pq}I_{pq}|.
+```
+
+For a linear resistor this reduces exactly to:
 
 ```math
 P_{pq}=I_{pq}^2R_{pq}.
 ```
 
-This is the standard resistor dissipation form applied to the executable link
-current and link resistance already present in the network.
+LINK-SEMI1 nonlinear elements therefore use `|VI|` directly instead of inventing a fictitious constant resistance.
 
 It distinguishes useful regimes:
 
@@ -273,8 +278,8 @@ python3 simulator/recovery_scenarios.py \
 ## 8. Calibration gates
 
 ```text
-TH01 same current + higher R -> higher I^2R
-TH02 double current -> 4x dissipation at same R
+TH01 same current + higher R -> higher I^2R for a resistor
+TH02 double current -> 4x resistor dissipation at same R
 TH03 low person load stays comfortable
 TH04 sustained high person load creates heat and recovery debt
 TH05 low link power does not create damage
