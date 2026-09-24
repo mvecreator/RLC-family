@@ -1,6 +1,6 @@
 # PERSON2 — смешанная RLC-модель персонажей
 
-> Статус: архитектурное предложение для следующего gate. PERSON2 пока не заменяет рабочий SIM-TIME1. Сначала он должен пройти PERSON-CAL и сохранить CALIB1.
+> Статус: PERSON2 compiler и PERSON-NET1 реализованы. PERSON-CAL зафиксирован отдельным gate; legacy CALIB1 остаётся обязательным.
 
 ## Зачем
 
@@ -210,3 +210,13 @@ CALIB1
 Главное архитектурное решение:
 
 > **не расширять старую цепь исключениями, а перейти от RLC семьи к сети RLC-персонажей.**
+
+## Реализовано
+
+- `simulator/person_model.py` — компилятор персонажей в смешанные RLC-узлы;
+- `simulator/person_calibration.py` — PERSON-CAL;
+- `simulator/person_network_solver.py` — комплексный узловой PERSON-NET1;
+- `tests/test_person_model.py` и `tests/test_person_network_solver.py` — regression gates;
+- `examples/person_family_scenario.json` — пример семьи со смешанными ролями.
+
+Подробнее по калибровке: [PERSON_CALIBRATION.md](PERSON_CALIBRATION.md).
