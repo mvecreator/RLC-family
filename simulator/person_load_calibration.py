@@ -23,6 +23,7 @@ def rows_from_profile(profile, kind="adult", initial=pload.INITIAL_LOAD):
                     "memory": component,
                     "incident_link_stress": component,
                     "financial_stress": component,
+                    "forcing_exposure": component,
                     "combined": component,
                     "accumulated_load": state,
                 }
@@ -41,6 +42,7 @@ def rows_from_profile(profile, kind="adult", initial=pload.INITIAL_LOAD):
                 "memory": component,
                 "incident_link_stress": component,
                 "financial_stress": component,
+                "forcing_exposure": component,
                 "combined": component,
                 "accumulated_load": state,
             }
@@ -59,6 +61,66 @@ def run_case(name, profile, kind="adult"):
         "summary": summary,
     }
 
+
+
+
+def rows_from_components(component_rows, kind="adult", initial=pload.INITIAL_LOAD):
+    state = float(initial)
+    rows = []
+    for day, components in enumerate(component_rows):
+        item = {
+            "excitation": float(components.get("excitation", 0.0)),
+            "memory": float(components.get("memory", 0.0)),
+            "incident_link_stress": float(components.get("incident_link_stress", 0.0)),
+            "financial_stress": float(components.get("financial_stress", 0.0)),
+            "forcing_exposure": float(components.get("forcing_exposure", 0.0)),
+        }
+        combined = pload.combine_components(**item)
+        rows.append({
+            "day": float(day),
+            "persons": {
+                "p": {
+                    "kind": kind,
+                    "age": 35 if kind == "adult" else 12,
+                    **item,
+                    "combined": combined,
+                    "accumulated_load": state,
+                }
+            },
+        })
+        state = pload.advance(state, combined, 1.0)
+    last = dict(component_rows[-1]) if component_rows else {}
+    item = {
+        "excitation": float(last.get("excitation", 0.0)),
+        "memory": float(last.get("memory", 0.0)),
+        "incident_link_stress": float(last.get("incident_link_stress", 0.0)),
+        "financial_stress": float(last.get("financial_stress", 0.0)),
+        "forcing_exposure": float(last.get("forcing_exposure", 0.0)),
+    }
+    rows.append({
+        "day": float(len(component_rows)),
+        "persons": {
+            "p": {
+                "kind": kind,
+                "age": 35 if kind == "adult" else 12,
+                **item,
+                "combined": pload.combine_components(**item),
+                "accumulated_load": state,
+            }
+        },
+    })
+    return rows
+
+
+def run_component_case(name, component_rows, kind="adult"):
+    rows = rows_from_components(component_rows, kind=kind)
+    summary = pload.classify(rows, "p")
+    summary["recommendations"] = pload.recommendations(summary, kind=kind)
+    return {
+        "name": name,
+        "profile_days": len(component_rows),
+        "summary": summary,
+    }
 
 def suite():
     cases = {
@@ -79,6 +141,27 @@ def suite():
         "child_high_sustained": run_case(
             "child_high_sustained", [0.50] * 30, kind="child"
         ),
+        "forcing_only": run_component_case(
+            "forcing_only",
+            [
+                {
+                    "excitation": 0.05,
+                    "memory": 0.15,
+                    "incident_link_stress": 0.05,
+                    "financial_stress": 0.05,
+                    "forcing_exposure": 1.0,
+                }
+            ] * 20
+            + [
+                {
+                    "excitation": 0.05,
+                    "memory": 0.10,
+                    "incident_link_stress": 0.05,
+                    "financial_stress": 0.05,
+                    "forcing_exposure": 0.0,
+                }
+            ] * 10,
+        ),
     }
 
     calm = cases["calm"]["summary"]
@@ -87,6 +170,7 @@ def suite():
     high = cases["high_sustained"]["summary"]
     severe = cases["severe_sustained"]["summary"]
     child = cases["child_high_sustained"]["summary"]
+    forcing_only = cases["forcing_only"]["summary"]
 
     child_actions = [x["action"] for x in child["recommendations"]]
 
@@ -127,6 +211,12 @@ def suite():
             < pload.equilibrium_for_constant_load(0.30)
             < pload.equilibrium_for_constant_load(0.50)
             < pload.equilibrium_for_constant_load(0.75)
+        ),
+        "PLCAL09_DIRECT_FORCING_IS_VISIBLE": (
+            forcing_only["first_recovery_attention_day"] is not None
+            and forcing_only["peak_load"]["value"] > pload.RECOVERY_ATTENTION
+            and forcing_only["final_load"] < pload.RECOVERY_ATTENTION
+            and forcing_only["dominant_mean_component"] == "forcing_exposure"
         ),
     }
 
