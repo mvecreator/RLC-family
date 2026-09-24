@@ -1,0 +1,36 @@
+{
+  "cases": [
+    {
+      "name": "partner_stress_continues",
+      "scenario": "examples/person_family_scenario.json",
+      "timeline": "examples/person_family_stress_timeline.json",
+      "cutoff_day": 8.0,
+      "horizon_days": 7.0,
+      "lookback_days": 3.0
+    },
+    {
+      "name": "critical_partner_accumulation",
+      "scenario": "examples/person_family_breakdown_scenario.json",
+      "timeline": "examples/person_family_breakdown_timeline.json",
+      "cutoff_day": 5.0,
+      "horizon_days": 7.0,
+      "lookback_days": 3.0
+    },
+    {
+      "name": "repair_hidden_just_after_cutoff",
+      "scenario": "examples/person_family_scenario.json",
+      "timeline": "examples/person_family_stress_timeline.json",
+      "cutoff_day": 20.8,
+      "horizon_days": 7.0,
+      "lookback_days": 3.0
+    },
+    {
+      "name": "canonical_short_history",
+      "scenario": "examples/person_family_scenario.json",
+      "timeline": "examples/person_family_timeline.json",
+      "cutoff_day": 3.0,
+      "horizon_days": 4.0,
+      "lookback_days": 2.0
+    }
+  ]
+}

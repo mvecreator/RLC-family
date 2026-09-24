@@ -897,3 +897,8 @@ Calibrates individual accumulated load with persistence-aware bands, adds sustai
 **[CAFFEINE1 — timed stimulant burden](CAFFEINE1.md)**
 
 Separates caffeine from generic forcing using configurable half-life and timing relative to sleep. The SOLO sleep target now includes emergence of biphasic sleep and later gradual disappearance of the secondary bout through temporal stretching.
+
+
+**[OUTCOME-BLIND1 — prefix-only predictive validation](OUTCOME_BLIND1.md)**
+
+Hides future windows from the predictor and scores recovery/accumulation/stability for each person and relationship link against a persistence baseline. Includes an explicit hidden-reversal case where the model is expected to fail rather than leak future information.

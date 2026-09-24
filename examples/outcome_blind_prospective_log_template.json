@@ -1,0 +1,48 @@
+{
+  "schema": "OUTCOME-BLIND1-PROSPECTIVE-LOG-0.1",
+  "notes": [
+    "Use pseudonymous person ids.",
+    "Do not fill future rows when creating a prediction at a cutoff.",
+    "Unknown values should remain null rather than guessed."
+  ],
+  "people": [
+    {"id": "adult_a", "kind": "adult"},
+    {"id": "adult_b", "kind": "adult"},
+    {"id": "child_a", "kind": "child"}
+  ],
+  "days": [
+    {
+      "day": 0,
+      "persons": {
+        "adult_a": {
+          "direct_forcing": null,
+          "sleep": {
+            "primary_sleep_start": null,
+            "primary_sleep_end": null,
+            "secondary_sleep_start": null,
+            "secondary_sleep_end": null
+          },
+          "caffeine_events": [
+            {
+              "time_hour": null,
+              "dose_mg": null,
+              "coffee_units_if_mg_unknown": null
+            }
+          ]
+        }
+      },
+      "links": {
+        "adult_a->adult_b": {
+          "communication_quality": null,
+          "contact_frequency": null,
+          "availability": null,
+          "hostility": null
+        }
+      },
+      "shared": {
+        "financial_stress_observation": null,
+        "major_external_event": null
+      }
+    }
+  ]
+}

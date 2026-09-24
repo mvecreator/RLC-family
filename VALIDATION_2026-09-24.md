@@ -154,3 +154,23 @@ Weakest parts:
 5. OUTCOME-BLIND1 — only later, test on blinded longitudinal synthetic or consented/anonymized records with future windows hidden.
 
 The next scientific milestone is not another feature. It is calibration against held-out trajectories.
+
+## 9. OUTCOME-BLIND1
+
+The next validation layer is now implemented as a prefix-only blind evaluator.
+
+It reports:
+
+- person direction: ACCUMULATING / RECOVERING / STABLE;
+- link direction: ACCUMULATING / RECOVERING / STABLE;
+- first person to cross the recovery-attention threshold;
+- first link to cross the repair-review threshold;
+- persistence-baseline scores.
+
+A strong no-leakage regression mutates only the hidden suffix and requires the prediction object to remain identical.
+
+A hidden-reversal case is intentionally retained as an expected model miss.
+
+The refined SOLO sleep trajectory currently provides an informative negative result: a cutoff inside the mature biphasic phase predicts STABLE from recent trend, while the hidden qualitative future contains disappearance of the secondary sleep bout. Because historical caffeine dose/timing are not identified, CAFFEINE1 assumptions are not allowed to rescue this prediction.
+
+This establishes the evaluation machinery but does not establish external predictive validity.
