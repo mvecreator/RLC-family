@@ -263,3 +263,48 @@ hostility_set / _add
 ```
 
 Mutation semantic-link без явного `target_link` отклоняется.
+
+
+## LINK-SEMI1 gate events
+
+PERSON-TIME2 executes nonlinear link currents through LINK-SEMI1.
+
+Supported nonlinear link types:
+
+```text
+DIODE
+MOSFET
+BREAKDOWN_DIODE
+```
+
+For MOSFET links, timeline events may change:
+
+```text
+gate_set
+gate_add
+```
+
+Example:
+
+```json
+{
+  "id": "authority-relief",
+  "день": 6,
+  "длительность_дней": 5,
+  "связь": ["employer","employee"],
+  "gate_set": 0.20
+}
+```
+
+Gate mutation on non-MOSFET links is rejected.
+
+Each sampled link now exposes:
+
+```text
+element_type
+gate
+delta_v
+instantaneous_conductance
+current
+power_vi_proxy = |delta_v * current|
+```
