@@ -146,6 +146,13 @@ def instantaneous_components(sample):
         links[key] = {
             "from": a,
             "to": b,
+            "R_link": float(link.get("R_link", 0.0)),
+            "current_abs_raw": float(link.get("current_abs", 0.0)),
+            "dissipation_power_proxy": (
+                float(link.get("current_abs", 0.0))
+                * float(link.get("current_abs", 0.0))
+                * float(link.get("R_link", 0.0))
+            ),
             "quality": transmission,
             "effective_transmission": transmission,
             "communication_quality": communication_quality,
