@@ -28,6 +28,21 @@ class PersonSoloCalibrationTests(unittest.TestCase):
         self.assertAlmostEqual(fit["effective_period_hours"], 25.0, places=12)
         self.assertAlmostEqual(fit["fit_rmse_hours"], 0.0, places=12)
 
+    def test_biphasic_sleep_constraint(self):
+        wake = solo.estimate_wake_period(self.obs)
+        s = solo.estimate_sleep_architecture(
+            self.obs, wake["effective_period_hours"]
+        )
+        self.assertTrue(s["gradual_split"])
+        self.assertTrue(s["requires_split_state"])
+        self.assertEqual(s["final_sleep_bout_count"], 2)
+        self.assertAlmostEqual(s["final_bout_sleep_fraction_each"], 0.5, places=12)
+        self.assertAlmostEqual(s["inter_bout_wake_gap_hours_midpoint"], 2.5, places=12)
+        self.assertAlmostEqual(s["inter_bout_gap_fraction_of_cycle_min"], 2/25, places=12)
+        self.assertAlmostEqual(s["inter_bout_gap_fraction_of_cycle_max"], 3/25, places=12)
+        self.assertIsNone(s["total_sleep_hours_per_cycle"])
+        self.assertIsNone(s["each_bout_hours_if_total_known"])
+
     def test_person_rlc_is_positive_and_underdamped(self):
         node, _ = solo.require_single_person(self.scenario)
         cal = solo.rlc_calibration(node, 25.0)
