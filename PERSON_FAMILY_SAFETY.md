@@ -38,12 +38,15 @@ financial stress
 Для каждой связи p↔q учитываются:
 
 ```text
-poor_quality
-interaction under poor quality
+communication_quality
+hostility
+interaction under relational friction
 mean memory of both people
 voltage/state gap
 financial background
 ```
+
+При LINK-SEM1 низкие `contact_frequency` и `availability` уменьшают транспорт, но сами по себе не считаются конфликтом.
 
 Важно:
 
@@ -127,7 +130,11 @@ BREAKDOWN_RISK_REVIEW
 Каждый link summary сохраняет средние компоненты:
 
 ```text
-poor_quality
+communication_quality
+contact_frequency
+availability
+hostility
+relational_friction
 stressed_interaction
 memory_mean
 voltage_gap
@@ -142,8 +149,11 @@ financial_stress
 основной вклад = financial_stress
 -> сначала уменьшить общую внешнюю нагрузку
 
-основной вклад = poor_quality
--> защищать коммуникационный канал
+основной вклад = poor_communication
+-> защищать качество коммуникационного канала
+
+основной вклад = hostility
+-> сначала снижать враждебность, а не просто увеличивать объём контакта
 
 основной вклад = high memory
 -> дать восстановление перед повторным конфликтом
@@ -263,3 +273,20 @@ PERSON2 network
 ```
 
 В будущем PERSON-OPT1 должен уметь сравнивать две стратегии не только по мгновенной амплитуде, но и по тому, насколько они уменьшают accumulated person/link state.
+
+
+## LINK-SEM1
+
+Слой safety использует [LINK-SEM1](LINK_SEMANTICS.md).
+
+Ключевое изменение:
+
+```text
+low contact != bad relationship
+```
+
+`contact_frequency` и `availability` управляют объёмом/доступностью канала.
+
+`communication_quality` и `hostility` управляют `relational_friction`.
+
+Таким образом редкий, но спокойный контакт не должен сам поднимать repair/breakdown warning.
