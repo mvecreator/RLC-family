@@ -268,3 +268,14 @@ The equation system is assembled **per question**.
 RLC-family should therefore behave less like a questionnaire and more like an engineering conversation:
 
 > **describe the situation → ask a question → assemble the equations → solve → interpret.**
+
+
+### person_network
+
+Если сценарий содержит `персонажи` и вопрос относится к конкретным людям или связям, используется PERSON-NET1:
+
+```json
+{"type":"person_network"}
+```
+
+Решатель строит комплексную узловую матрицу `Y V = I` и возвращает отдельные напряжения/фазы персонажей и токи каналов. Подробнее: [PERSON_NETWORK.md](PERSON_NETWORK.md).
