@@ -30,10 +30,16 @@ def make_row(day, person_state, person_load, link_state, link_load):
     }
 
 
-def generate_case(prefix_load, future_load, days=12):
+def generate_case(
+    prefix_load,
+    future_load,
+    days=12,
+    initial_person_state=0.20,
+    initial_link_state=0.15,
+):
     rows = []
-    ps = 0.20
-    ls = 0.15
+    ps = float(initial_person_state)
+    ls = float(initial_link_state)
     for day in range(days + 1):
         load = prefix_load if day <= 5 else future_load
         rows.append(make_row(day, ps, load, ls, load))
@@ -48,7 +54,12 @@ def generate_case(prefix_load, future_load, days=12):
 
 def suite():
     accumulating = generate_case(0.55, 0.55)
-    recovering = generate_case(0.05, 0.05)
+    recovering = generate_case(
+        0.05,
+        0.05,
+        initial_person_state=0.70,
+        initial_link_state=0.70,
+    )
 
     # Same prefix as accumulating, but future load reverses after cutoff.
     hidden_reversal = generate_case(0.55, 0.02)
