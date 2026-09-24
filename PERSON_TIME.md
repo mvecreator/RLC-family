@@ -332,3 +332,29 @@ target_link_id
 ```
 
 All branch currents are summed into the PERSON2 node equation.
+
+
+## CHANNEL-COUPLING1 execution
+
+PERSON-TIME2 is the authoritative solver for coupled channels.
+
+At each RK4 evaluation:
+
+```text
+1. compile event-adjusted links;
+2. freeze all CHANNEL-COUPLING1 source signals;
+3. accumulate target deltas simultaneously;
+4. refresh LINK-SEM1 semantics where needed;
+5. evaluate LINK-SEMI1 currents;
+6. integrate PERSON2 node states.
+```
+
+Every sample exposes:
+
+```text
+channel_coupling_effects
+```
+
+with source, target, activation and signed delta provenance.
+
+Rule ordering in scenario JSON cannot change same-instant results.
