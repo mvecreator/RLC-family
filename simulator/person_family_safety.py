@@ -50,7 +50,12 @@ def _node_map(sample):
 
 
 def _link_key(link):
-    return "->".join(sorted((str(link["from"]), str(link["to"]))))
+    return str(
+        link.get(
+            "link_id",
+            "->".join(sorted((str(link["from"]), str(link["to"])))),
+        )
+    )
 
 
 def _incident_link_load(sample, pid):
@@ -70,7 +75,14 @@ def _incident_link_load(sample, pid):
         )
         flow = norm(link["current_abs"], 0.15)
         values.append(friction * flow)
-    return sum(values) / len(values) if values else 0.0
+    if not values:
+        return 0.0
+    # MULTI-LINK1: preserve the single-link value exactly while preventing
+    # extra parallel channels from diluting incident load through averaging.
+    remaining = 1.0
+    for value in values:
+        remaining *= 1.0 - clip01(value)
+    return clip01(1.0 - remaining)
 
 
 def instantaneous_components(sample):
@@ -144,6 +156,13 @@ def instantaneous_components(sample):
             + 0.10 * financial
         )
         links[key] = {
+            "link_id": key,
+            "pair_id": link.get(
+                "pair_id",
+                "->".join(sorted((a, b))),
+            ),
+            "channel_kind": link.get("channel_kind", "generic"),
+            "parallel_branch_count": link.get("parallel_branch_count", 1),
             "from": a,
             "to": b,
             "element_type": link.get("element_type", "RESISTIVE"),
