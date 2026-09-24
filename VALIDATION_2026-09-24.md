@@ -174,3 +174,42 @@ A hidden-reversal case is intentionally retained as an expected model miss.
 The refined SOLO sleep trajectory currently provides an informative negative result: a cutoff inside the mature biphasic phase predicts STABLE from recent trend, while the hidden qualitative future contains disappearance of the secondary sleep bout. Because historical caffeine dose/timing are not identified, CAFFEINE1 assumptions are not allowed to rescue this prediction.
 
 This establishes the evaluation machinery but does not establish external predictive validity.
+
+
+## 10. OUTCOME-BENCH1
+
+A first fixed blind benchmark corpus is now defined.
+
+Reference synthetic results:
+
+```text
+person direction
+  RLC projection     26/34 = 76.47%
+  persistence        15/34 = 44.12%
+  linear trend       17/34 = 50.00%
+
+link direction
+  RLC projection     26/34 = 76.47%
+  persistence        14/34 = 41.18%
+  linear trend       17/34 = 50.00%
+
+first-crossing localization
+  RLC projection      2/4  = 50%
+  persistence         0/4  = 0%
+  linear trend        2/4  = 50%
+```
+
+The aggregate advantage is mostly a continuation-regime result.
+
+For hidden future regime changes:
+
+```text
+hidden shifts:   RLC 0/4
+trend reversals: RLC 0/2
+```
+
+Therefore the current model should be described as a conditional dynamic continuation predictor, not a predictor of unobserved future shocks.
+
+The benchmark also found and fixed a localization evaluator mismatch: already-crossed entities are now excluded from "first future crossing" predictions, matching the hidden-suffix evaluator contract.
+
+These are synthetic results and do not establish external predictive validity.
