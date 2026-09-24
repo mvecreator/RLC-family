@@ -85,6 +85,10 @@ def _compile_events(spec, node_ids, link_keys):
             link_tuple = tuple(sorted(parts))
             if link_tuple not in link_keys:
                 raise core.ScenarioError(f"event {idx}: unknown link {parts}")
+        if float(item.get("memory_impulse", item.get("импульс_памяти", 0.0))) != 0 and target_person is None:
+            raise core.ScenarioError(
+                f"event {idx}: memory impulse requires target_person"
+            )
         out.append({
             "id": str(item.get("id", f"event-{idx+1}")),
             "label": str(item.get("описание", item.get("label", item.get("id", f"Событие {idx+1}")))),
@@ -437,7 +441,19 @@ def simulate_person_timeline(scenario, timeline):
     base_memory = float(
         scenario.get("отношения", {}).get("накопленная_память", 0.2)
     )
-    mem0 = [pm.clip(base_memory, 0.0, 1.0) for _ in node_ids]
+    raw_persons = {
+        str(p.get("id")): p
+        for p in scenario.get("персонажи", [])
+        if isinstance(p, dict)
+    }
+    mem0 = [
+        pm.clip(
+            float(raw_persons.get(pid, {}).get("initial_memory", base_memory)),
+            0.0,
+            1.0,
+        )
+        for pid in node_ids
+    ]
     state = _pack(v0, il0, mem0, finance["reserve"], finance["debt"])
     state = _apply_impulses(state, 0.0, events, index)
 
