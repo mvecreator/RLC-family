@@ -18,6 +18,10 @@ SOURCE_SIGNALS = {
     "current_abs",
     "power",
     "conductance",
+    "communication_quality",
+    "effective_transmission",
+    "hostility",
+    "gate",
 }
 
 TARGET_FIELDS = {
@@ -156,6 +160,14 @@ def branch_signals(links, voltages, index, semi):
             "current_abs": abs(current),
             "power": abs(dv * current),
             "conductance": semi.conductance(link, dv),
+            "communication_quality": float(
+                link.get("communication_quality", link.get("quality", 0.0))
+            ),
+            "effective_transmission": float(
+                link.get("effective_transmission", link.get("quality", 0.0))
+            ),
+            "hostility": float(link.get("hostility", 0.0)),
+            "gate": float(link.get("gate", 0.0) or 0.0),
         }
     return signals
 
