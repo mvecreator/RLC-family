@@ -372,3 +372,25 @@ THERM-CAL1 10/10 PASS
 ```
 
 No local WSL PASS is claimed until the executable gate is run.
+
+
+## MULTI-LINK1 thermal branches
+
+LINK-THERM1 keeps heat, damage and recovery debt separately for every parallel branch.
+
+Thermal output preserves:
+
+```text
+link_id
+pair_id
+channel_kind
+```
+
+so the same pair can simultaneously have, for example:
+
+```text
+personal channel: COMFORT
+work channel: OVERHEATED
+```
+
+Pair-level total dissipation is summarized in PERSON-FAMILY-SAFETY1, while the thermal state itself remains branch-specific.
