@@ -109,6 +109,38 @@ def _compile_events(spec, node_ids, link_keys):
             "money_impulse": float(item.get("money_impulse", item.get("денежный_импульс", 0.0))),
             "link_quality_set": item.get("link_quality_set", item.get("качество_связи")),
             "link_quality_add": float(item.get("link_quality_add", item.get("изменить_качество_связи", 0.0))),
+            "communication_quality_set": item.get(
+                "communication_quality_set",
+                item.get("установить_качество_общения"),
+            ),
+            "communication_quality_add": float(item.get(
+                "communication_quality_add",
+                item.get("изменить_качество_общения", 0.0),
+            )),
+            "contact_frequency_set": item.get(
+                "contact_frequency_set",
+                item.get("установить_частоту_контакта"),
+            ),
+            "contact_frequency_add": float(item.get(
+                "contact_frequency_add",
+                item.get("изменить_частоту_контакта", 0.0),
+            )),
+            "availability_set": item.get(
+                "availability_set",
+                item.get("установить_доступность"),
+            ),
+            "availability_add": float(item.get(
+                "availability_add",
+                item.get("изменить_доступность", 0.0),
+            )),
+            "hostility_set": item.get(
+                "hostility_set",
+                item.get("установить_враждебность"),
+            ),
+            "hostility_add": float(item.get(
+                "hostility_add",
+                item.get("изменить_враждебность", 0.0),
+            )),
         })
     out.sort(key=lambda e: (e["start"], e["id"]))
     return out
@@ -142,13 +174,34 @@ def _network_at(base_scenario, base_ir, events, t):
         key = event["target_link"]
         if key is not None:
             link = link_by[key]
-            q = link["quality"]
-            if event["link_quality_set"] is not None:
-                q = float(event["link_quality_set"])
-            q += event["link_quality_add"]
-            q = pm.clip(q, 0.0, 1.0)
-            link["quality"] = q
-            link["R_link"] = pm.link_resistance(q)
+
+            # Legacy link-quality event preserves legacy meaning when the link
+            # itself came from the old one-dimensional quality schema.
+            if event["link_quality_set"] is not None or event["link_quality_add"]:
+                q = link.get("communication_quality", link["quality"])
+                if event["link_quality_set"] is not None:
+                    q = float(event["link_quality_set"])
+                q = pm.clip(q + event["link_quality_add"], 0.0, 1.0)
+                link["communication_quality"] = q
+                if link.get("semantic_source") == "legacy-quality":
+                    link["hostility"] = 1.0 - q
+
+            fields = (
+                ("communication_quality", "communication_quality_set", "communication_quality_add"),
+                ("contact_frequency", "contact_frequency_set", "contact_frequency_add"),
+                ("availability", "availability_set", "availability_add"),
+                ("hostility", "hostility_set", "hostility_add"),
+            )
+            for field, set_key, add_key in fields:
+                if event[set_key] is None and not event[add_key]:
+                    continue
+                value = float(link.get(field, 0.0))
+                if event[set_key] is not None:
+                    value = float(event[set_key])
+                value = pm.clip(value + event[add_key], 0.0, 1.0)
+                link[field] = value
+
+            pm.refresh_link_semantics(link)
     return nodes, links, person_drive
 
 
@@ -306,6 +359,17 @@ def _sample(t, state, scenario, base_ir, events, cfg):
             "from": link["from"],
             "to": link["to"],
             "quality": link["quality"],
+            "communication_quality": link.get(
+                "communication_quality", link["quality"]
+            ),
+            "contact_frequency": link.get("contact_frequency", 1.0),
+            "availability": link.get("availability", 1.0),
+            "hostility": link.get("hostility", 1.0 - link["quality"]),
+            "contact_capacity": link.get("contact_capacity", 1.0),
+            "effective_transmission": link.get(
+                "effective_transmission", link["quality"]
+            ),
+            "semantic_source": link.get("semantic_source", "legacy-quality"),
             "R_link": link["R_link"],
             "current": current,
             "current_abs": abs(current),
