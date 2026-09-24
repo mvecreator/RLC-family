@@ -42,6 +42,11 @@ class PersonSoloCalibrationTests(unittest.TestCase):
         self.assertAlmostEqual(s["inter_bout_gap_fraction_of_cycle_max"], 3/25, places=12)
         self.assertIsNone(s["total_sleep_hours_per_cycle"])
         self.assertIsNone(s["each_bout_hours_if_total_known"])
+        self.assertTrue(s["resolution_available"])
+        self.assertTrue(s["returns_to_monophasic"])
+        self.assertEqual(s["resolution_final_sleep_bout_count"], 1)
+        self.assertEqual(s["secondary_bout_weight_final"], 0.0)
+        self.assertEqual(s["temporal_separation_trend"], "increasing")
 
     def test_person_rlc_is_positive_and_underdamped(self):
         node, _ = solo.require_single_person(self.scenario)

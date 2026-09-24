@@ -1,5 +1,5 @@
 {
-  "name": "PERSON-SOLO1 observed 25-hour drift with progressive biphasic sleep",
+  "name": "PERSON-SOLO1 observed 25-hour drift with transient biphasic sleep",
   "calendar_day_interval_hours": 24.0,
   "wake_observations": [
     {"day": 0, "wake_offset_hours": 0.0},
@@ -21,15 +21,28 @@
       "max": 3.0
     },
     "total_sleep_hours_per_cycle": null,
-    "note": "The sleep episode gradually split into two approximately equal sleep bouts; later a 2-3 hour waking interval appeared between them."
+    "resolution": {
+      "transition": "secondary_bout_gradually_fades_with_temporal_stretch",
+      "final_sleep_bout_count": 1,
+      "secondary_bout_weight_final": 0.0,
+      "temporal_separation_trend": "increasing",
+      "exact_calendar_timing_known": false,
+      "exact_final_gap_hours_known": false,
+      "note": "After the mature biphasic stage, the second sleep episode gradually disappeared while becoming more temporally stretched/separated."
+    },
+    "note": "The sleep episode gradually split into two approximately equal bouts; a 2-3 hour waking interval appeared; later the second bout gradually faded while stretching/separating in time."
   },
   "historical_caffeine": {
-    "description": "aggregate forcing proxy for the earlier 1-2 cups every day",
-    "cups_per_day_range": [1, 2]
+    "description": "Earlier period: typically 1-2 coffees every day.",
+    "cups_per_day_range": [1, 2],
+    "dose_mg_per_cup_observed": null,
+    "timing_relative_to_sleep_observed": null
   },
   "current_caffeine": {
-    "description": "upper end of the current stated 3-4 cups per week",
-    "cups_per_week": 4
+    "description": "Current period: up to 3-4 coffees per week.",
+    "cups_per_week": 4,
+    "dose_mg_per_cup_observed": null,
+    "timing_relative_to_sleep_observed": null
   },
-  "calibration_scope": "Wake observations identify phase drift; sleep_architecture constrains fragmentation. Neither establishes caffeine as the cause."
+  "calibration_scope": "Wake observations identify phase drift; sleep architecture identifies split, mature biphasic state and later secondary-bout resolution. Caffeine frequency is observed qualitatively, but dose and timing are not; no causal inference is encoded."
 }

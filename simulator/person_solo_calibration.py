@@ -132,6 +132,24 @@ def estimate_sleep_architecture(observations, effective_period_hours):
         each_bout_hours = None
         episode_span_hours = None
 
+    resolution = raw.get("resolution")
+    if resolution is not None and not isinstance(resolution, dict):
+        raise core.ScenarioError("sleep_architecture.resolution must be object")
+    resolution = resolution or {}
+    resolution_transition = str(
+        resolution.get("transition", "")
+    ).strip()
+    resolution_final_bouts = resolution.get("final_sleep_bout_count")
+    if resolution_final_bouts is not None:
+        resolution_final_bouts = int(resolution_final_bouts)
+    secondary_final = resolution.get("secondary_bout_weight_final")
+    if secondary_final is not None:
+        secondary_final = float(secondary_final)
+        if not 0.0 <= secondary_final <= 1.0:
+            raise core.ScenarioError(
+                "secondary_bout_weight_final must be in [0,1]"
+            )
+
     return {
         "available": True,
         "transition": transition,
@@ -149,6 +167,21 @@ def estimate_sleep_architecture(observations, effective_period_hours):
         "each_bout_hours_if_total_known": each_bout_hours,
         "sleep_episode_span_hours_if_total_known": episode_span_hours,
         "requires_split_state": True,
+        "resolution_available": bool(resolution),
+        "resolution_transition": resolution_transition or None,
+        "resolution_final_sleep_bout_count": resolution_final_bouts,
+        "secondary_bout_weight_final": secondary_final,
+        "temporal_separation_trend": resolution.get("temporal_separation_trend"),
+        "resolution_exact_calendar_timing_known": resolution.get(
+            "exact_calendar_timing_known"
+        ),
+        "resolution_exact_final_gap_hours_known": resolution.get(
+            "exact_final_gap_hours_known"
+        ),
+        "returns_to_monophasic": (
+            resolution_final_bouts == 1
+            and secondary_final == 0.0
+        ),
         "identifiability": (
             "The 2-3 h waking notch and 1:1 bout ratio are identified, "
             "but absolute sleep-bout duration is not identified until total sleep time is supplied."
@@ -156,7 +189,8 @@ def estimate_sleep_architecture(observations, effective_period_hours):
         "model_requirement": (
             "Keep one 25 h phase oscillator, but add an independent split/harmonic sleep-readout "
             "state; a single thresholded sinusoidal readout is insufficient to represent the "
-            "observed gradual one-bout to two-bout transition."
+            "observed gradual one-bout to two-bout transition and later disappearance of the "
+            "secondary bout through a separate resolution/stretch state."
         ),
     }
 
@@ -289,8 +323,9 @@ def calibrate(scenario, observations, historical=None, current=None):
         "budget": budget_summary(scenario),
         "limitations": [
             "The 25-hour value is inferred from the supplied wake-phase observations.",
-            "The later sleep pattern is biphasic: two approximately equal bouts separated by a 2-3 h waking interval.",
-            "The gradual split requires a separate sleep-fragmentation/readout state; it is not explained by the RLC phase oscillator alone.",
+            "The sleep history contains a mature biphasic stage: two approximately equal bouts separated by a 2-3 h waking interval.",
+            "After that stage, the second bout gradually fades while becoming more temporally stretched/separated, returning toward one main sleep episode.",
+            "The split and later resolution require separate sleep-readout states; neither is explained by the RLC phase oscillator alone.",
             "Absolute bout duration remains unidentified because total sleep time per 25 h cycle was not supplied.",
             "Coffee/project events are forcing proxies, not identified causal coefficients.",
             "The fitted hours-per-model-unit scale is an internal calibration convention.",
@@ -344,6 +379,9 @@ def report(result):
             f"- gap fraction of 25 h cycle = {100*s['inter_bout_gap_fraction_of_cycle_midpoint']:.2f}%",
             f"- absolute bout duration = {'unknown' if s['total_sleep_hours_per_cycle'] is None else 'identified'}",
             f"- requires split-state = {s['requires_split_state']}",
+            f"- resolution available = {s.get('resolution_available', False)}",
+            f"- resolution transition = {s.get('resolution_transition')}",
+            f"- returns to monophasic = {s.get('returns_to_monophasic', False)}",
         ]
     lines += [
         "",
