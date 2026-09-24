@@ -119,8 +119,17 @@ def compile_couplings(scenario, links):
                 f"{cid}: reverse_ratio target requires nonlinear directed link"
             )
 
+        default_scale = {
+            "power": 0.02,
+            "current_abs": 0.15,
+            "conductance": 1.0,
+            "communication_quality": 1.0,
+            "effective_transmission": 1.0,
+            "hostility": 1.0,
+            "gate": 1.0,
+        }[signal]
         source_scale = _positive(
-            item.get("source_scale", 0.02 if signal == "power" else 0.15),
+            item.get("source_scale", default_scale),
             f"{cid}.source_scale",
         )
         threshold = clip01(item.get("threshold", 0.0))
