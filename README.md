@@ -882,3 +882,8 @@ python3 simulator/person_time_solver.py \
 **[Validation pack — 2026-09-24](VALIDATION_2026-09-24.md)**
 
 Directed PERSON-TIME2 gates, calm/stress family scenarios, ensemble calibration, SOLO safety sensitivity, discovered limitations and the next calibration gates.
+
+
+**[LINK-SEM1 — semantic relationship channels](LINK_SEMANTICS.md)**
+
+Relationship links now separate communication quality, contact frequency, availability and hostility. Low contact no longer automatically means a bad relationship; legacy `quality` remains backward compatible.

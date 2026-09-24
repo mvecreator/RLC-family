@@ -224,3 +224,42 @@ LLM должна:
 ## Главный контракт
 
 > **Событие происходит с конкретным человеком. Сеть решает, кто почувствует его дальше.**
+
+
+## LINK-SEM1 dynamic events
+
+Помимо legacy `качество_связи`, PERSON-TIME2 умеет временно менять отдельные семантики канала:
+
+```text
+communication_quality_set / _add
+contact_frequency_set / _add
+availability_set / _add
+hostility_set / _add
+```
+
+Пример временной недоступности без конфликта:
+
+```json
+{
+  "id": "work-trip",
+  "день": 2,
+  "длительность_дней": 5,
+  "связь": ["husband","wife"],
+  "availability_set": 0.20
+}
+```
+
+Пример конфликтного окна:
+
+```json
+{
+  "id": "argument",
+  "день": 4,
+  "длительность_дней": 0.5,
+  "связь": ["husband","wife"],
+  "communication_quality_set": 0.35,
+  "hostility_set": 0.80
+}
+```
+
+Mutation semantic-link без явного `target_link` отклоняется.
