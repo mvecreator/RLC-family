@@ -229,3 +229,20 @@ This term can increase effective drive and memory accumulation.
 It is an internal RLC-family systems coefficient, not a measured psychological stress score.
 
 This coupling was added after scenario-lab testing showed that the first dynamic implementation produced identical relationship trajectories for healthy finances and severe financial overload.
+
+
+## Matched support relaxation
+
+CALIB1 showed that a well-matched external support channel was underweighted when relaxation depended almost entirely on `P_rad = i²R_rad`.
+
+SIM-TIME1 therefore also includes:
+
+```text
+support_relaxation
+  = support_memory_relax
+  * dump
+  * matching
+  * memory
+```
+
+This makes a genuinely matched external unloading channel different from merely increasing passive electrical resistance.
