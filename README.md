@@ -917,3 +917,8 @@ Separates retrospective hypothesis records from genuine prospective blind-valida
 **[PERSON-THERM1 / LINK-THERM1 / RECOVERY-SCENARIO1](THERMAL_RECOVERY.md)**
 
 Adds thermal memory over person load and link dissipation `I^2R`, slow recovery debt, link damage, and hypothetical recovery-scenario comparison such as short break, work disconnect, deep recovery, staged cooling, or a mountain-style mechanism bundle.
+
+
+**[LINK-SEMI1 — nonlinear directed and gated relationship links](LINK_SEMI1.md)**
+
+Adds RESISTIVE, DIODE, MOSFET and BREAKDOWN_DIODE relationship elements. Employer→employee is the first MOSFET calibration example, with an explicit external gate such as authority/contract dependency. Nonlinear links run in PERSON-TIME2; the linear PERSON-NET1 solver rejects them.

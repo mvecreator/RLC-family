@@ -1,0 +1,126 @@
+{
+  "название": "LINK-SEMI1: employer employee coworker friend",
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "employer",
+      "type": "adult",
+      "gender": "female",
+      "source_weight": 0.30,
+      "role": {
+        "work_provider": 0.95,
+        "decision_initiative": 0.95,
+        "external_activity": 0.90,
+        "caregiver": 0.10,
+        "domestic_load": 0.10,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "employee",
+      "type": "adult",
+      "gender": "male",
+      "source_weight": 0.35,
+      "role": {
+        "work_provider": 0.80,
+        "decision_initiative": 0.55,
+        "external_activity": 0.75,
+        "caregiver": 0.35,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.55
+      }
+    },
+    {
+      "id": "coworker",
+      "type": "adult",
+      "gender": "female",
+      "source_weight": 0.20,
+      "role": {
+        "work_provider": 0.75,
+        "decision_initiative": 0.60,
+        "external_activity": 0.70,
+        "caregiver": 0.30,
+        "domestic_load": 0.30,
+        "recovery_inertia": 0.45
+      }
+    },
+    {
+      "id": "friend",
+      "type": "adult",
+      "gender": "male",
+      "source_weight": 0.15,
+      "role": {
+        "work_provider": 0.45,
+        "decision_initiative": 0.55,
+        "external_activity": 0.60,
+        "caregiver": 0.55,
+        "domestic_load": 0.40,
+        "recovery_inertia": 0.35
+      }
+    }
+  ],
+  "связи_персонажей": [
+    {
+      "from": "employer",
+      "to": "employee",
+      "communication_quality": 0.78,
+      "contact_frequency": 0.90,
+      "availability": 0.95,
+      "hostility": 0.10,
+      "element_type": "MOSFET",
+      "gate": 0.85,
+      "gate_threshold": 0.50,
+      "gate_softness": 0.08,
+      "off_ratio": 0.02,
+      "reverse_ratio": 0.15,
+      "gate_semantics": "authority_contract_dependency"
+    },
+    {
+      "from": "employee",
+      "to": "coworker",
+      "communication_quality": 0.80,
+      "contact_frequency": 0.85,
+      "availability": 0.85,
+      "hostility": 0.08,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "from": "friend",
+      "to": "employee",
+      "communication_quality": 0.90,
+      "contact_frequency": 0.45,
+      "availability": 0.75,
+      "hostility": 0.02,
+      "element_type": "DIODE",
+      "forward_threshold": 0.04,
+      "softness": 0.02,
+      "reverse_ratio": 0.08
+    }
+  ],
+  "отношения": {
+    "напряженность": 0.30,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.15
+  },
+  "связь": {
+    "качество_проводника": 0.80,
+    "усиление_эмоций": 1.0,
+    "фильтр_критического_мышления": 0.80,
+    "усиление_антенны": 0.20,
+    "внешний_фон": 0.10,
+    "сброс_через_антенну": 0.30,
+    "согласование_собеседника": 0.80
+  },
+  "финансы": {
+    "доходы_в_месяц": [1.0],
+    "ипотека_в_месяц": 0.0,
+    "базовые_расходы_в_месяц": 0.55,
+    "прочие_расходы_в_месяц": 0.15,
+    "резерв": 4.0,
+    "долг_по_ипотеке": 0.0,
+    "ставка_годовая": 0.0
+  }
+}

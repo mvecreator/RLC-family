@@ -13,11 +13,13 @@ from pathlib import Path
 try:
     from simulator import person_model as pm
     from simulator import person_network_solver as pnet
+    from simulator import link_semiconductor as semi
     from simulator import rlc_family_sim as core
     from simulator import time_solver as legacy_time
 except ModuleNotFoundError:
     import person_model as pm
     import person_network_solver as pnet
+    import link_semiconductor as semi
     import rlc_family_sim as core
     import time_solver as legacy_time
 
@@ -106,6 +108,8 @@ def _compile_events(spec, node_ids, link_keys):
             "установить_доступность", "изменить_доступность",
             "hostility_set", "hostility_add",
             "установить_враждебность", "изменить_враждебность",
+            "gate_set", "gate_add",
+            "установить_gate", "изменить_gate",
         )
         if target_link is None and any(
             key in item and item.get(key) not in (None, 0, 0.0)
@@ -160,6 +164,14 @@ def _compile_events(spec, node_ids, link_keys):
                 "hostility_add",
                 item.get("изменить_враждебность", 0.0),
             )),
+            "gate_set": item.get(
+                "gate_set",
+                item.get("установить_gate"),
+            ),
+            "gate_add": float(item.get(
+                "gate_add",
+                item.get("изменить_gate", 0.0),
+            )),
         })
     out.sort(key=lambda e: (e["start"], e["id"]))
     return out
@@ -194,6 +206,13 @@ def _network_at(base_scenario, base_ir, events, t):
         if key is not None:
             link = link_by[key]
 
+            if (
+                event["gate_set"] is not None or event["gate_add"]
+            ) and link.get("element_type", "RESISTIVE") != "MOSFET":
+                raise core.ScenarioError(
+                    f"event {event['id']}: gate mutation requires MOSFET link"
+                )
+
             # Legacy link-quality event preserves legacy meaning when the link
             # itself came from the old one-dimensional quality schema.
             if event["link_quality_set"] is not None or event["link_quality_add"]:
@@ -210,6 +229,7 @@ def _network_at(base_scenario, base_ir, events, t):
                 ("contact_frequency", "contact_frequency_set", "contact_frequency_add"),
                 ("availability", "availability_set", "availability_add"),
                 ("hostility", "hostility_set", "hostility_add"),
+                ("gate", "gate_set", "gate_add"),
             )
             for field, set_key, add_key in fields:
                 if event[set_key] is None and not event[add_key]:
@@ -254,7 +274,7 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
     for link in links:
         i = index[link["from"]]
         j = index[link["to"]]
-        current = (v[i] - v[j]) / link["R_link"]
+        current = semi.current(link, v[i], v[j])
         coupling[i] += current
         coupling[j] -= current
         link_currents.append((link, current))
@@ -385,10 +405,18 @@ def _sample(t, state, scenario, base_ir, events, cfg):
     for link in links:
         i = index[link["from"]]
         j = index[link["to"]]
-        current = (v[i] - v[j]) / link["R_link"]
+        delta_v = v[i] - v[j]
+        current = semi.current(link, v[i], v[j])
         link_rows.append({
             "from": link["from"],
             "to": link["to"],
+            "element_type": link.get("element_type", "RESISTIVE"),
+            "nonlinear": bool(link.get("nonlinear", False)),
+            "gate": link.get("gate"),
+            "gate_semantics": link.get("gate_semantics"),
+            "delta_v": delta_v,
+            "instantaneous_conductance": semi.conductance(link, delta_v),
+            "power_vi_proxy": semi.power(link, v[i], v[j]),
             "quality": link["quality"],
             "communication_quality": link.get(
                 "communication_quality", link["quality"]

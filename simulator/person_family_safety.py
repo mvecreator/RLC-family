@@ -146,12 +146,20 @@ def instantaneous_components(sample):
         links[key] = {
             "from": a,
             "to": b,
+            "element_type": link.get("element_type", "RESISTIVE"),
+            "nonlinear": bool(link.get("nonlinear", False)),
+            "gate": link.get("gate"),
+            "gate_semantics": link.get("gate_semantics"),
             "R_link": float(link.get("R_link", 0.0)),
+            "delta_v_raw": float(link.get("delta_v", 0.0)),
             "current_abs_raw": float(link.get("current_abs", 0.0)),
-            "dissipation_power_proxy": (
-                float(link.get("current_abs", 0.0))
-                * float(link.get("current_abs", 0.0))
-                * float(link.get("R_link", 0.0))
+            "dissipation_power_proxy": float(
+                link.get(
+                    "power_vi_proxy",
+                    float(link.get("current_abs", 0.0))
+                    * float(link.get("current_abs", 0.0))
+                    * float(link.get("R_link", 0.0)),
+                )
             ),
             "quality": transmission,
             "effective_transmission": transmission,

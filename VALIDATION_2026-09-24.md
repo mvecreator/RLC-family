@@ -270,3 +270,43 @@ Recovery scenarios compare declared mechanism bundles. They do not assert that a
 The own executable calibration is THERM-CAL1 with 10 directional gates.
 
 No external clinical or relationship-outcome validation is claimed.
+
+
+## 13. LINK-SEMI1
+
+The relationship graph now supports nonlinear directed/gated link hypotheses:
+
+```text
+RESISTIVE
+DIODE
+MOSFET
+BREAKDOWN_DIODE
+```
+
+Legacy links remain RESISTIVE.
+
+The first mixed example uses:
+
+```text
+employer -> employee : MOSFET
+employee <-> coworker: RESISTIVE
+friend -> employee   : DIODE
+```
+
+The social label does not determine the element automatically; the element encodes an explicitly declared structural hypothesis.
+
+The MOSFET gate is an external/institutional channel factor, not a personality score.
+
+PERSON-NET1 rejects nonlinear links because its frequency-domain matrix is linear. PERSON-TIME2 executes the nonlinear currents directly.
+
+LINK-THERM1 now uses the universal dissipation proxy:
+
+```math
+P=|\Delta V I|
+```
+
+which reduces exactly to `I^2R` for RESISTIVE links.
+
+LINK-SEMI-CAL1 contains 10 directional/backward-compatibility gates.
+
+A current limitation remains: PERSON2 permits one link branch per pair. Explicit parallel personal/institutional branches are deferred to MULTI-LINK1.
