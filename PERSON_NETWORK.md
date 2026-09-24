@@ -99,7 +99,11 @@ son     <-> daughter
 
 У каждого канала есть:
 
-- `quality`;
+- `communication_quality`;
+- `contact_frequency`;
+- `availability`;
+- `hostility`;
+- derived `effective_transmission` (compatibility alias `quality`);
 - `R_link`;
 - комплексный ток;
 - амплитуда тока;
@@ -140,3 +144,18 @@ PERSON-TIME2
 ## Динамическое продолжение
 
 Frequency-domain PERSON-NET1 продолжен моделью [PERSON-TIME2](PERSON_TIME.md), где локальные события адресуются конкретным узлам и связям, а распространение рассчитывается во времени.
+
+
+## LINK-SEM1 transport
+
+Новые semantic-links компилируются по:
+
+```math
+T_{pq}=q_{pq}\sqrt{f_{pq}a_{pq}}
+```
+
+и уже `T_pq` задаёт `R_link`.
+
+`hostility` не меняет проводимость напрямую; она используется safety-layer как отдельная семантика.
+
+Legacy `quality` сохраняет старое электрическое поведение.
