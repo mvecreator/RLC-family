@@ -193,3 +193,12 @@ G_{eq} = sum_b 1/R_b.
 Every output branch retains its own `link_id`.
 
 If any parallel branch is nonlinear, PERSON-NET1 rejects the solve and the whole network must be evaluated with PERSON-TIME2.
+
+
+## CHANNEL-COUPLING1 solver boundary
+
+PERSON-NET1 rejects scenarios with any CHANNEL-COUPLING1 rule, even if all physical branches are RESISTIVE.
+
+The coupling rules depend on current dynamic branch signals and therefore belong to PERSON-TIME2.
+
+No automatic linearization is performed.
