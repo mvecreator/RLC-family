@@ -74,8 +74,14 @@ def _compile_events(spec, node_ids, link_keys):
         link_tuple = None
         if target_link is not None:
             if isinstance(target_link, str):
-                parts = target_link.replace("->", ":").replace("-", ":").split(":")
-                parts = [x.strip() for x in parts if x.strip()]
+                if "->" in target_link:
+                    parts = [x.strip() for x in target_link.split("->")]
+                elif ":" in target_link:
+                    parts = [x.strip() for x in target_link.split(":")]
+                else:
+                    raise core.ScenarioError(
+                        f"event {idx}: string target_link must use 'a->b' or 'a:b'"
+                    )
             elif isinstance(target_link, list):
                 parts = [str(x).strip() for x in target_link]
             else:
