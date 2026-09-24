@@ -135,6 +135,27 @@ class PersonTimeSolverTests(unittest.TestCase):
             places=6,
         )
 
+    def test_outputs_include_node_and_link_csv(self):
+        timeline = {
+            "моделирование": {
+                "дней": 0.5,
+                "шаг_дней": 0.01,
+                "выборка_дней": 0.1
+            },
+            "события": []
+        }
+        result = pts.simulate_person_timeline(self.scenario, timeline)
+        import tempfile
+        with tempfile.TemporaryDirectory() as td:
+            pts.write_outputs(td, result)
+            for name in (
+                "person_timeline_result.json",
+                "person_timeline_report.md",
+                "person_nodes.csv",
+                "person_links.csv",
+            ):
+                self.assertTrue((Path(td) / name).exists())
+
     def test_problem_solver_person_timeline_route(self):
         timeline = {
             "моделирование": {
