@@ -357,3 +357,21 @@ Incident person load combines parallel branch contributions with:
 ```
 
 which preserves the old single-link value exactly and prevents additional channels from artificially diluting stress by averaging.
+
+
+## CHANNEL-COUPLING1 provenance
+
+PERSON-FAMILY-SAFETY1 carries `channel_coupling_effects` from PERSON-TIME2 into the accumulated trajectory.
+
+The summary reports per coupling:
+
+```text
+source_link_id
+target_link_id
+target_field
+peak_abs_delta
+mean_abs_delta
+first_active_day
+```
+
+This is explanatory provenance for the declared simulation rule, not evidence of real-world causality.
