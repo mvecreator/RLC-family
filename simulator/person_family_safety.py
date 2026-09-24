@@ -183,6 +183,7 @@ def instantaneous_components(sample):
             "nonlinear": bool(link.get("nonlinear", False)),
             "gate": link.get("gate"),
             "gate_semantics": link.get("gate_semantics"),
+            "reverse_ratio": link.get("reverse_ratio"),
             "R_link": float(link.get("R_link", 0.0)),
             "delta_v_raw": float(link.get("delta_v", 0.0)),
             "current_abs_raw": float(link.get("current_abs", 0.0)),
