@@ -295,11 +295,11 @@ MOSFET:
 
 These values validate the equation shape, not social behavior.
 
-## 11. Current limitation: one branch per pair
+## 11. Parallel branches
 
-PERSON2 currently permits one link object for each pair of nodes.
+The previous one-branch-per-pair limitation is removed by [MULTI-LINK1](MULTI_LINK1.md).
 
-Therefore the following richer model is **not yet represented explicitly**:
+The model can now represent explicitly:
 
 ```text
 coworker relationship
@@ -309,13 +309,9 @@ parallel
 MOSFET_institutional
 ```
 
-That should be a separate future gate:
+Each branch keeps its own `link_id`, current, thermal state, strain and events.
 
-```text
-MULTI-LINK1
-```
-
-rather than silently approximated inside LINK-SEMI1.
+LINK-SEMI1 still defines the nonlinear element laws; MULTI-LINK1 defines how several branches coexist between the same endpoint nodes.
 
 ## 12. Executable verification
 
