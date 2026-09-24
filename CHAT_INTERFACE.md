@@ -374,3 +374,37 @@ ProblemSpec:
 -> что можно попробовать снизить первым
 -> нужен ли repair review / breakdown-risk review
 ```
+
+
+---
+
+## Нагрузка каждого члена семьи
+
+Если вопрос относится к тому, **кто именно в семье сейчас перегружен**, LLM должна использовать PERSON-FAMILY-SAFETY1 + PERSON-LOAD-CAL1 и показывать отдельный результат для каждого PERSON2 node.
+
+Минимальный ответ по человеку:
+
+```text
+person
+band
+peak/final load
+dominant load component
+first sustained crossing if any
+recommendations
+```
+
+Компоненты:
+
+```text
+excitation
+memory
+incident_link_stress
+financial_stress
+forcing_exposure
+```
+
+Нельзя переносить warning одного человека на остальных без расчёта их собственных состояний.
+
+Для ребёнка `RECOVERY_ATTENTION` и более сильные уровни должны переводиться в caregiver-facing рекомендацию.
+
+Person-load является инженерным индексом проекта и не должен называться психологическим или медицинским диагнозом.

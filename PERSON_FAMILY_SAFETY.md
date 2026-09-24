@@ -290,3 +290,46 @@ low contact != bad relationship
 `communication_quality` и `hostility` управляют `relational_friction`.
 
 Таким образом редкий, но спокойный контакт не должен сам поднимать repair/breakdown warning.
+
+
+## PERSON-LOAD-CAL1
+
+Индивидуальный `person_load[p](t)` теперь проходит отдельную калибровку по [PERSON-LOAD-CAL1](PERSON_LOAD_CALIBRATION.md).
+
+Для каждого члена семьи summary содержит:
+
+```text
+band
+peak_load
+final_load
+first_recovery_attention_day
+first_sustained_load_review_day
+first_high_load_review_day
+dominant_mean_component
+mean_components
+recommendations
+```
+
+Текущая лестница:
+
+```text
+STABLE
+RECOVERY_ATTENTION
+SUSTAINED_LOAD_REVIEW
+HIGH_LOAD_REVIEW
+```
+
+Сильные уровни требуют не только пересечения порога, но и dwell-time.
+
+Отдельно учитывается `forcing_exposure`: длительная адресная нагрузка не должна исчезать из person-load только потому, что RLC voltage успел адаптироваться.
+
+Для детей действия формулируются через caregiver-review, а не как требование к ребёнку самостоятельно исправлять семейную нагрузку.
+
+Отчёт по всем членам семьи:
+
+```bash
+python3 simulator/family_member_load_report.py \
+  examples/person_family_scenario.json \
+  examples/person_family_timeline.json \
+  --out out/member-loads
+```

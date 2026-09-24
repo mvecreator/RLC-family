@@ -370,6 +370,8 @@ def _sample(t, state, scenario, base_ir, events, cfg):
     for i, node in enumerate(nodes):
         node_rows.append({
             "id": node["id"],
+            "kind": node.get("kind"),
+            "age": node.get("age"),
             "voltage": v[i],
             "inductor_current": il[i],
             "memory": mem[i],
