@@ -19,9 +19,11 @@ from pathlib import Path
 try:
     from simulator import rlc_family_sim as core
     from simulator import person_network_solver as person_net
+    from simulator import person_time_solver as person_time
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
+    import person_time_solver as person_time
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -368,6 +370,11 @@ def harmonize(scenario, problem):
 
 def solve_problem(scenario, problem):
     ptype = problem.get("type", "diagnose")
+    if ptype == "person_timeline":
+        timeline = problem.get("timeline")
+        if not isinstance(timeline, dict):
+            raise core.ScenarioError("person_timeline requires timeline object")
+        return person_time.simulate_person_timeline(scenario, timeline)
     if ptype == "person_network":
         return person_net.solve_network(scenario)
     if ptype == "diagnose":
