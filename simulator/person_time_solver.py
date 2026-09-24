@@ -546,7 +546,40 @@ def write_outputs(out, result):
         json.dumps(result, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    (out / "person_timeline_report.md").write_text(report(result), encoding="utf-8")
+    (out / "person_timeline_report.md").write_text(
+        report(result), encoding="utf-8"
+    )
+
+    node_header = [
+        "day", "id", "voltage", "inductor_current", "memory",
+        "R", "C", "L", "event_drive",
+    ]
+    node_rows = [",".join(node_header)]
+    link_header = [
+        "day", "from", "to", "quality", "R_link", "current", "current_abs",
+    ]
+    link_rows = [",".join(link_header)]
+
+    for sample in result["samples"]:
+        day = sample["day"]
+        for node in sample["nodes"]:
+            node_rows.append(",".join(str(x) for x in [
+                day, node["id"], node["voltage"],
+                node["inductor_current"], node["memory"],
+                node["R"], node["C"], node["L"], node["event_drive"],
+            ]))
+        for link in sample["links"]:
+            link_rows.append(",".join(str(x) for x in [
+                day, link["from"], link["to"], link["quality"],
+                link["R_link"], link["current"], link["current_abs"],
+            ]))
+
+    (out / "person_nodes.csv").write_text(
+        "\n".join(node_rows) + "\n", encoding="utf-8"
+    )
+    (out / "person_links.csv").write_text(
+        "\n".join(link_rows) + "\n", encoding="utf-8"
+    )
 
 
 def main():
