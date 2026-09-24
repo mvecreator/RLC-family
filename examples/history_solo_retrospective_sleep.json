@@ -1,0 +1,83 @@
+{
+  "schema": "HISTORY-DATA1-0.1",
+  "record_id": "solo-retrospective-25h-sleep-v1",
+  "collection_mode": "retrospective",
+  "template": false,
+  "subject_scope": "solo",
+  "privacy": {
+    "pseudonymous": true,
+    "person_id": "solo"
+  },
+  "time_axis": {
+    "exact_calendar_dates_known": false,
+    "relative_day_observed": false,
+    "phase_order_known": true
+  },
+  "future_outcome_known_when_logged": true,
+  "future_derived_features_present": false,
+  "preregistration": null,
+  "observations": [],
+  "phases": [
+    {
+      "id": "monophasic_baseline",
+      "order": 1,
+      "sleep_bout_count": 1,
+      "exact_start_date": null
+    },
+    {
+      "id": "phase_drift_daily_coffee",
+      "order": 2,
+      "wake_phase_drift_hours_per_calendar_day": 1.0,
+      "coffee_frequency": "approximately 1-2 per day",
+      "dose_mg_per_coffee": null,
+      "timing_relative_to_sleep": null,
+      "exact_start_date": null
+    },
+    {
+      "id": "split_emerging",
+      "order": 3,
+      "description": "sleep gradually divides into two parts",
+      "exact_start_date": null
+    },
+    {
+      "id": "biphasic_mature",
+      "order": 4,
+      "sleep_bout_count": 2,
+      "bout_relation": "approximately equal",
+      "inter_bout_wake_gap_hours": {
+        "min": 2.0,
+        "max": 3.0
+      },
+      "total_sleep_hours_per_cycle": null,
+      "exact_start_date": null
+    },
+    {
+      "id": "secondary_bout_resolving",
+      "order": 5,
+      "secondary_bout_weight_trend": "decreasing",
+      "temporal_separation_trend": "increasing",
+      "exact_start_date": null
+    },
+    {
+      "id": "monophasic_current",
+      "order": 6,
+      "sleep_bout_count": 1,
+      "coffee_frequency": "up to 3-4 per week",
+      "dose_mg_per_coffee": null,
+      "timing_relative_to_sleep": null,
+      "exact_start_date": null
+    }
+  ],
+  "research_use": {
+    "allowed": [
+      "hypothesis_generation",
+      "qualitative_sleep_trajectory",
+      "sensitivity_analysis"
+    ],
+    "not_allowed": [
+      "blind_accuracy_score",
+      "personal_caffeine_effect_estimate",
+      "causal_claim"
+    ]
+  }
+}

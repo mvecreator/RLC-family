@@ -213,3 +213,28 @@ Therefore the current model should be described as a conditional dynamic continu
 The benchmark also found and fixed a localization evaluator mismatch: already-crossed entities are now excluded from "first future crossing" predictions, matching the hidden-suffix evaluator contract.
 
 These are synthetic results and do not establish external predictive validity.
+
+
+## 11. HISTORY-DATA1
+
+A provenance gate now separates retrospective reconstruction from prospective blind-validation candidates.
+
+The current personal SOLO sleep/caffeine history is retained as a useful retrospective hypothesis record, but is explicitly ineligible for a blind accuracy score because:
+
+- the outcome trajectory is already known;
+- exact dates are not available;
+- historical caffeine dose and timing are unknown;
+- no model/cutoff/horizon was preregistered before the outcome.
+
+A synthetic prospective demo is included to exercise the correct contract:
+
+```text
+model SHA frozen
+cutoff frozen
+horizon frozen
+observations recorded contemporaneously
+prefix available to predictor
+hidden suffix withheld until evaluation
+```
+
+This closes a major methodological loophole: known anecdotes can no longer inflate out-of-sample evidence.

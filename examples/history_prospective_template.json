@@ -1,0 +1,61 @@
+{
+  "schema": "HISTORY-DATA1-0.1",
+  "record_id": "replace-me",
+  "collection_mode": "prospective",
+  "template": true,
+  "subject_scope": "solo_or_family",
+  "privacy": {
+    "pseudonymous": true
+  },
+  "time_axis": {
+    "exact_calendar_dates_known": false,
+    "relative_day_observed": true,
+    "phase_order_known": true
+  },
+  "future_outcome_known_when_logged": false,
+  "future_derived_features_present": false,
+  "preregistration": {
+    "model_ref": "freeze-model-sha-before-outcome",
+    "cutoff_day": 14,
+    "horizon_days": 7,
+    "frozen_before_outcome": true
+  },
+  "observations": [
+    {
+      "day": 0,
+      "date": null,
+      "recorded_contemporaneously": true,
+      "persons": {
+        "adult_a": {
+          "direct_forcing": null,
+          "sleep": {
+            "primary_sleep_start": null,
+            "primary_sleep_end": null,
+            "secondary_sleep_start": null,
+            "secondary_sleep_end": null
+          },
+          "caffeine_events": [
+            {
+              "time_hour": null,
+              "dose_mg": null,
+              "coffee_units_if_mg_unknown": null
+            }
+          ]
+        }
+      },
+      "links": {
+        "adult_a->adult_b": {
+          "communication_quality": null,
+          "contact_frequency": null,
+          "availability": null,
+          "hostility": null
+        }
+      },
+      "shared": {
+        "financial_stress_observation": null,
+        "major_external_event": null
+      }
+    }
+  ],
+  "phases": []
+}
