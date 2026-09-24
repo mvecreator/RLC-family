@@ -1,0 +1,34 @@
+{
+  "schema": "HISTORY-DATA1-0.1",
+  "record_id": "synthetic-prospective-demo-v1",
+  "collection_mode": "prospective",
+  "template": false,
+  "subject_scope": "family",
+  "privacy": {
+    "pseudonymous": true
+  },
+  "time_axis": {
+    "exact_calendar_dates_known": false,
+    "relative_day_observed": true,
+    "phase_order_known": true
+  },
+  "future_outcome_known_when_logged": false,
+  "future_derived_features_present": false,
+  "preregistration": {
+    "model_ref": "3bb79ea695ba26d22a724cbb65d7d5c017f241c8",
+    "cutoff_day": 4,
+    "horizon_days": 3,
+    "frozen_before_outcome": true
+  },
+  "observations": [
+    {"day": 0, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.10}}},
+    {"day": 1, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.12}}},
+    {"day": 2, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.15}}},
+    {"day": 3, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.18}}},
+    {"day": 4, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.20}}},
+    {"day": 5, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.22}}},
+    {"day": 6, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.18}}},
+    {"day": 7, "recorded_contemporaneously": true, "persons": {"a": {"direct_forcing": 0.12}}}
+  ],
+  "phases": []
+}
