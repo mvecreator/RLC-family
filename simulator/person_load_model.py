@@ -10,11 +10,14 @@ from __future__ import annotations
 VERSION = "RLC-FAMILY-PERSON-LOAD1-0.1"
 
 COMPONENT_WEIGHTS = {
-    "excitation": 0.25,
-    "memory": 0.35,
-    "incident_link_stress": 0.20,
-    "financial_stress": 0.20,
+    "excitation": 0.20,
+    "memory": 0.25,
+    "incident_link_stress": 0.15,
+    "financial_stress": 0.15,
+    "forcing_exposure": 0.25,
 }
+
+FORCING_SCALE = 0.35
 
 RECOVERY_ATTENTION = 0.35
 SUSTAINED_LOAD_REVIEW = 0.50
@@ -37,12 +40,14 @@ def combine_components(
     memory,
     incident_link_stress,
     financial_stress,
+    forcing_exposure=0.0,
 ):
     values = {
         "excitation": clip01(excitation),
         "memory": clip01(memory),
         "incident_link_stress": clip01(incident_link_stress),
         "financial_stress": clip01(financial_stress),
+        "forcing_exposure": clip01(forcing_exposure),
     }
     return clip01(sum(
         COMPONENT_WEIGHTS[key] * values[key]
@@ -122,11 +127,12 @@ def _component_means(rows, pid):
         "memory",
         "incident_link_stress",
         "financial_stress",
+        "forcing_exposure",
     )
     out = {}
     for field in fields:
         values = [
-            float(row["persons"][pid][field])
+            float(row["persons"][pid].get(field, 0.0))
             for row in rows
         ]
         out[field] = sum(values) / len(values)
@@ -139,9 +145,10 @@ def _component_peaks(rows, pid):
         "memory",
         "incident_link_stress",
         "financial_stress",
+        "forcing_exposure",
     )
     return {
-        field: max(float(row["persons"][pid][field]) for row in rows)
+        field: max(float(row["persons"][pid].get(field, 0.0)) for row in rows)
         for field in fields
     }
 
@@ -198,13 +205,22 @@ def classify(rows, pid):
 
 
 def recommendations(summary, kind="adult"):
-    """Translate the calibrated state into non-clinical load-management actions."""
+    """Translate calibrated state into non-clinical load-management actions."""
     band = summary["band"]
     means = summary["mean_components"]
     kind = str(kind or "adult").lower()
     child = kind == "child"
     actions = []
 
+    if means["forcing_exposure"] >= 0.25:
+        actions.append({
+            "action": "REDUCE_AVOIDABLE_FORCING",
+            "reason": "forcing_exposure",
+            "message": (
+                "Sustained direct forcing is a major contributor; reduce or "
+                "redistribute avoidable demands before relying on transient voltage alone."
+            ),
+        })
     if means["financial_stress"] >= 0.25:
         actions.append({
             "action": "REDUCE_SHARED_FINANCIAL_PRESSURE",
@@ -234,11 +250,11 @@ def recommendations(summary, kind="adult"):
         })
     if means["excitation"] >= 0.35:
         actions.append({
-            "action": "REDUCE_AVOIDABLE_FORCING",
+            "action": "REDUCE_TRANSIENT_EXCITATION",
             "reason": "excitation",
             "message": (
-                "External/local forcing is a major contributor; reduce avoidable "
-                "load before interpreting the state as a relationship failure."
+                "Transient local excitation is a major contributor; protect a "
+                "recovery window before adding more stimulation."
             ),
         })
 
