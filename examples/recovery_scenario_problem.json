@@ -1,0 +1,43 @@
+{
+  "type": "recovery_scenarios",
+  "cutoff_day": 20,
+  "lookback_days": 3,
+  "profiles": [
+    "continue_7d",
+    "three_day_break_then_return",
+    "work_disconnect_7d",
+    "deep_recovery_7d",
+    "mountain_style_7d",
+    "cool_then_shared_7d"
+  ],
+  "timeline": {
+    "моделирование": {
+      "дней": 30,
+      "шаг_дней": 0.02,
+      "выборка_дней": 0.10
+    },
+    "события": [
+      {
+        "id": "partner-a-sustained-load",
+        "день": 1,
+        "длительность_дней": 20,
+        "персонаж": "husband",
+        "добавить_возбуждение": 0.35
+      },
+      {
+        "id": "partner-b-sustained-load",
+        "день": 1,
+        "длительность_дней": 20,
+        "персонаж": "wife",
+        "добавить_возбуждение": 0.35
+      },
+      {
+        "id": "partner-channel-degraded",
+        "день": 1,
+        "длительность_дней": 20,
+        "связь": ["husband", "wife"],
+        "качество_связи": 0.20
+      }
+    ]
+  }
+}
