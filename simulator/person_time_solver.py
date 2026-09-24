@@ -307,7 +307,11 @@ def _network_at(base_scenario, base_ir, events, t):
     nodes = copy.deepcopy(base_ir["nodes"])
     links = copy.deepcopy(base_ir["links"])
     node_by = {n["id"]: n for n in nodes}
-    link_by = {tuple(sorted((x["from"], x["to"]))): x for x in links}
+    link_by_id = {str(x["link_id"]): x for x in links}
+    links_by_pair = {}
+    for x in links:
+        pair = tuple(sorted((x["from"], x["to"])))
+        links_by_pair.setdefault(pair, []).append(x)
     person_drive = {n["id"]: 0.0 for n in nodes}
 
     for event in events:
@@ -319,8 +323,18 @@ def _network_at(base_scenario, base_ir, events, t):
                 person_drive[pid] = float(event["drive_set"])
             person_drive[pid] += event["drive_add"]
         key = event["target_link"]
-        if key is not None:
-            link = link_by[key]
+        link_id = event.get("target_link_id")
+        if link_id is not None or key is not None:
+            if link_id is not None:
+                link = link_by_id[link_id]
+            else:
+                matches = links_by_pair.get(key, [])
+                if len(matches) != 1:
+                    raise core.ScenarioError(
+                        f"event {event['id']}: ambiguous parallel link; "
+                        "use target_link_id"
+                    )
+                link = matches[0]
 
             if (
                 event["gate_set"] is not None or event["gate_add"]
@@ -524,6 +538,10 @@ def _sample(t, state, scenario, base_ir, events, cfg):
         delta_v = v[i] - v[j]
         current = semi.current(link, v[i], v[j])
         link_rows.append({
+            "link_id": link["link_id"],
+            "pair_id": link["pair_id"],
+            "channel_kind": link.get("channel_kind", "generic"),
+            "parallel_branch_count": link.get("parallel_branch_count", 1),
             "from": link["from"],
             "to": link["to"],
             "element_type": link.get("element_type", "RESISTIVE"),
@@ -585,7 +603,10 @@ def summarize(samples, node_ids):
     link_series = {}
     for sample in samples:
         for link in sample["links"]:
-            key = f"{link['from']}->{link['to']}"
+            key = link.get(
+                "link_id",
+                "->".join(sorted((link["from"], link["to"]))),
+            )
             link_series.setdefault(key, []).append((sample["day"], link))
     by_link = {}
     for key, rows in link_series.items():
@@ -660,11 +681,11 @@ def simulate_person_timeline(scenario, timeline):
         raise core.ScenarioError("PERSON-TIME2 timeline too large")
 
     node_ids = [n["id"] for n in base_ir["nodes"]]
-    link_keys = {
-        tuple(sorted((x["from"], x["to"])))
-        for x in base_ir["links"]
-    }
-    events = _compile_events(timeline, set(node_ids), link_keys)
+    events = _compile_events(
+        timeline,
+        set(node_ids),
+        base_ir["links"],
+    )
     shares = _source_weights(scenario, base_ir["nodes"])
     index = {pid: i for i, pid in enumerate(node_ids)}
 
@@ -730,7 +751,7 @@ def simulate_person_timeline(scenario, timeline):
         "model_version": VERSION,
         "scenario_name": scenario.get("название", "PERSON2 family"),
         "equations": [
-            "C_p dv_p/dt = u_p(t) - v_p/R_p - i_L,p - sum((v_p-v_q)/R_pq)",
+            "C_p dv_p/dt = u_p(t) - v_p/R_p - i_L,p - sum(I_branch)",
             "L_p di_L,p/dt = v_p",
             "dm_p/dt = local_excitation + link_stress + financial_stress - recovery",
             "dReserve/dt = (income-load)/days_per_month + impulses",
@@ -801,7 +822,8 @@ def write_outputs(out, result):
     ]
     node_rows = [",".join(node_header)]
     link_header = [
-        "day", "from", "to", "quality", "R_link", "current", "current_abs",
+        "day", "link_id", "pair_id", "channel_kind",
+        "from", "to", "quality", "R_link", "current", "current_abs",
     ]
     link_rows = [",".join(link_header)]
 
@@ -815,7 +837,9 @@ def write_outputs(out, result):
             ]))
         for link in sample["links"]:
             link_rows.append(",".join(str(x) for x in [
-                day, link["from"], link["to"], link["quality"],
+                day, link["link_id"], link["pair_id"],
+                link.get("channel_kind", "generic"),
+                link["from"], link["to"], link["quality"],
                 link["R_link"], link["current"], link["current_abs"],
             ]))
 
