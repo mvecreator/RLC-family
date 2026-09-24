@@ -288,3 +288,35 @@ CAFFEINE1
 ```
 
 CAFFEINE1 should remain optional and separated from generic person load because stimulant timing/dose needs its own dynamics.
+
+
+## Executable verification
+
+Run after LINK-SEM1 passes:
+
+```bash
+python3 simulator/person_load_calibration.py
+
+python3 -m unittest tests.test_person_load_calibration -v
+python3 -m unittest tests.test_family_member_load_report -v
+python3 -m unittest tests.test_person_load_family_cases -v
+
+# parent-gate regressions
+python3 simulator/link_semantic_calibration.py
+python3 -m unittest tests.test_link_semantics -v
+python3 -m unittest tests.test_link_semantic_events -v
+python3 -m unittest tests.test_person_time_calibration -v
+python3 -m unittest tests.test_family_validation_cases -v
+```
+
+Expected PERSON-LOAD-CAL1 executable gate:
+
+```text
+PLCAL01..PLCAL09 = 9/9 PASS
+family member report tests = PASS
+family member scenario tests = PASS
+LINK-SEM1 parent gate remains PASS
+PERSON-TIME-CAL parent gate remains PASS
+```
+
+The assistant development container cannot perform the repository checkout because DNS access to `github.com` is unavailable there. Therefore no local unittest PASS is claimed until the WSL run is supplied.
