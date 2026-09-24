@@ -73,7 +73,8 @@ def solve_network(scenario):
     nodes=pir["nodes"]
     links=pir["links"]
     nonlinear = [
-        f"{link['from']}->{link['to']}:{link.get('element_type')}"
+        f"{link.get('link_id', link['from'] + '->' + link['to'])}:"
+        f"{link.get('element_type')}"
         for link in links
         if semi.is_nonlinear(link)
     ]
@@ -211,7 +212,7 @@ def solve_network(scenario):
         "scenario_name":scenario.get("название","PERSON2 family"),
         "person_ir":pir,
         "equations":{
-            "node":"Y_person(omega)*V_p + sum((V_p-V_q)/R_pq) = I_p",
+            "node":"Y_person(omega)*V_p + sum_branch((V_p-V_q)/R_branch) = I_p",
             "person_admittance":"1/R_p + j*omega*C_p + 1/(j*omega*L_p)",
             "link_current":"I_pq = (V_p-V_q)/R_pq",
         },
