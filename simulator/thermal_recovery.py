@@ -17,6 +17,8 @@ VERSION = "RLC-FAMILY-THERM1-0.1"
 PERSON_HEAT_GAIN = 0.35
 PERSON_COOL_GAIN = 0.25
 PERSON_COMFORT_HEAT = 0.35
+PERSON_OVERHEAT = 0.55
+PERSON_HIGH_HEAT = 0.70
 
 LINK_POWER_REF = 0.020
 LINK_HEAT_GAIN = 0.50
@@ -122,9 +124,9 @@ def advance_debt(debt, heat, comfort_heat, cooling, dt):
 
 def person_heat_band(heat):
     heat = clip01(heat)
-    if heat >= 0.70:
+    if heat >= PERSON_HIGH_HEAT:
         return "HIGH_HEAT"
-    if heat >= 0.55:
+    if heat >= PERSON_OVERHEAT:
         return "OVERHEATED"
     if heat >= 0.35:
         return "WARM"
