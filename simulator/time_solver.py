@@ -158,9 +158,12 @@ def derivatives(t, state, base, events, cfg):
     di = (effective_drive - k["R"] * current - q / k["C"]) / k["L"]
 
     p_rad = (current * current) * k["Rrad"]
-    quality = float(s.get("связь", {}).get("качество_проводника", 0.70))
+    link = s.get("связь", {})
+    quality = float(link.get("качество_проводника", 0.70))
     tension = float(s.get("отношения", {}).get("напряженность", 0.50))
     nonlinearity = float(s.get("отношения", {}).get("подростковая_нелинейность", 0.0))
+    dump = float(link.get("сброс_через_антенну", 0.20))
+    match = float(link.get("согласование_собеседника", 0.50))
 
     mem_gain = float(cfg.get("memory_gain", 0.040))
     current_gain = float(cfg.get("current_memory_gain", 0.020))
@@ -169,6 +172,7 @@ def derivatives(t, state, base, events, cfg):
     memory_decay = float(cfg.get("memory_decay_per_day", 0.030))
     communication_relax = float(cfg.get("communication_memory_relax", 0.025))
     dump_relax = float(cfg.get("dump_memory_relax", 0.080))
+    support_relax = float(cfg.get("support_memory_relax", 0.060))
 
     financial_memory_gain = float(cfg.get("financial_memory_gain", 0.025))
     excitation = max(0.0, abs(effective_drive) - 0.35)
@@ -184,6 +188,7 @@ def derivatives(t, state, base, events, cfg):
         - memory_decay * memory
         - communication_relax * quality * memory
         - dump_relax * p_rad
+        - support_relax * dump * match * memory
     )
 
     f = ir["finance"]
