@@ -222,13 +222,32 @@ def _advance(state, load, dt, accumulation=0.45, recovery=0.14):
     )
 
 
-def integrate_trajectory(person_time_result):
+
+def _initial_person_load(scenario, pid):
+    if not isinstance(scenario, dict):
+        return pload.INITIAL_LOAD
+    for person in scenario.get("персонажи", []):
+        if str(person.get("id")) != str(pid):
+            continue
+        return clip01(
+            person.get(
+                "initial_accumulated_load",
+                pload.INITIAL_LOAD,
+            )
+        )
+    return pload.INITIAL_LOAD
+
+
+def integrate_trajectory(person_time_result, scenario=None):
     samples = person_time_result["samples"]
     if not samples:
         raise core.ScenarioError("PERSON-TIME2 returned no samples")
 
     first = instantaneous_components(samples[0])
-    person_state = {pid: pload.INITIAL_LOAD for pid in first["persons"]}
+    person_state = {
+        pid: _initial_person_load(scenario, pid)
+        for pid in first["persons"]
+    }
     link_state = {key: 0.15 for key in first["links"]}
 
     rows = []
@@ -609,7 +628,7 @@ def assess(scenario, timeline, relationship_flags=None):
         raise core.ScenarioError(
             "PERSON-FAMILY-SAFETY1 requires at least two persons"
         )
-    rows = integrate_trajectory(time_result)
+    rows = integrate_trajectory(time_result, scenario=scenario)
     return {
         "model_version": VERSION,
         "scenario_name": time_result["scenario_name"],
