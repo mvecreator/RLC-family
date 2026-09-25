@@ -1,0 +1,269 @@
+{
+  "название": "NEIGHBOR-NET1 household topology: solo vs family3 vs couple",
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "central",
+      "type": "adult",
+      "source_weight": 1.0,
+      "initial_memory": 0.20,
+      "role": {
+        "work_provider": 0.65,
+        "decision_initiative": 0.65,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.45,
+        "recovery_inertia": 0.55
+      }
+    },
+
+    {
+      "id": "solo1",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.60,
+        "decision_initiative": 0.60,
+        "external_activity": 0.55,
+        "caregiver": 0.30,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    },
+
+    {
+      "id": "fam2_husband",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.70,
+        "decision_initiative": 0.60,
+        "external_activity": 0.65,
+        "caregiver": 0.40,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "fam2_wife",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.65,
+        "external_activity": 0.55,
+        "caregiver": 0.55,
+        "domestic_load": 0.55,
+        "recovery_inertia": 0.48
+      }
+    },
+    {
+      "id": "fam2_adult_son",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.12,
+      "role": {
+        "work_provider": 0.50,
+        "decision_initiative": 0.55,
+        "external_activity": 0.70,
+        "caregiver": 0.25,
+        "domestic_load": 0.30,
+        "recovery_inertia": 0.42
+      }
+    },
+
+    {
+      "id": "couple3_husband",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.65,
+        "decision_initiative": 0.60,
+        "external_activity": 0.60,
+        "caregiver": 0.40,
+        "domestic_load": 0.40,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "couple3_wife",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.65,
+        "external_activity": 0.55,
+        "caregiver": 0.50,
+        "domestic_load": 0.50,
+        "recovery_inertia": 0.48
+      }
+    }
+  ],
+
+  "связи_персонажей": [
+    {
+      "link_id": "solo1-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "solo1",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+
+    {
+      "link_id": "fam2-husband-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "fam2_husband",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "fam2-wife-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "fam2_wife",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "fam2-son-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "fam2_adult_son",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+
+    {
+      "link_id": "couple3-husband-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "couple3_husband",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "couple3-wife-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "couple3_wife",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+
+    {
+      "link_id": "fam2.spouse",
+      "channel_kind": "household_internal",
+      "from": "fam2_husband",
+      "to": "fam2_wife",
+      "communication_quality": 0.82,
+      "contact_frequency": 0.95,
+      "availability": 0.95,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "fam2.husband-son",
+      "channel_kind": "household_internal",
+      "from": "fam2_husband",
+      "to": "fam2_adult_son",
+      "communication_quality": 0.78,
+      "contact_frequency": 0.85,
+      "availability": 0.90,
+      "hostility": 0.06,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "fam2.wife-son",
+      "channel_kind": "household_internal",
+      "from": "fam2_wife",
+      "to": "fam2_adult_son",
+      "communication_quality": 0.80,
+      "contact_frequency": 0.88,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    },
+
+    {
+      "link_id": "couple3.spouse",
+      "channel_kind": "household_internal",
+      "from": "couple3_husband",
+      "to": "couple3_wife",
+      "communication_quality": 0.82,
+      "contact_frequency": 0.95,
+      "availability": 0.95,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    }
+  ],
+
+  "отношения": {
+    "напряженность": 0.20,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.15
+  },
+  "связь": {
+    "качество_проводника": 0.80,
+    "усиление_эмоций": 1.0,
+    "фильтр_критического_мышления": 0.80,
+    "усиление_антенны": 0.20,
+    "внешний_фон": 0.05,
+    "сброс_через_антенну": 0.30,
+    "согласование_собеседника": 0.80
+  },
+  "финансы": {
+    "доходы_в_месяц": [1.0],
+    "ипотека_в_месяц": 0.0,
+    "базовые_расходы_в_месяц": 0.55,
+    "прочие_расходы_в_месяц": 0.15,
+    "резерв": 4.0,
+    "долг_по_ипотеке": 0.0,
+    "ставка_годовая": 0.0
+  }
+}
