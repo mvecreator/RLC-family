@@ -835,6 +835,37 @@ def analyze(scenario, spec):
             "difference": coupled_peak - uncoupled_peak,
         }
 
+    no_cross = copy.deepcopy(scenario)
+    no_cross["связи_персонажей"] = [
+        link
+        for link in no_cross.get("связи_персонажей", [])
+        if link.get("channel_kind") != "cross_household_social"
+    ]
+    no_cross_run = _run(
+        no_cross,
+        compiled,
+        include_relief=True,
+    )
+    no_cross_pre = central_window_metrics(
+        no_cross_run,
+        compiled,
+        pre_lo,
+        t0,
+    )
+    cross_household_social_effect = {
+        "with_cross_household_links_peak_load": actual_pre[
+            "peak_accumulated_load"
+        ]["value"],
+        "without_cross_household_links_peak_load": no_cross_pre[
+            "peak_accumulated_load"
+        ]["value"],
+        "difference": (
+            actual_pre["peak_accumulated_load"]["value"]
+            - no_cross_pre["peak_accumulated_load"]["value"]
+        ),
+        "direction_precommitted": False,
+    }
+
     return {
         "model_version": VERSION,
         "central_person_id": compiled["central_person_id"],
@@ -867,6 +898,7 @@ def analyze(scenario, spec):
             household_probe_no_internal
         ),
         "household_topology_effect": topology_effect,
+        "cross_household_social_effect": cross_household_social_effect,
         "comparisons": {
             "observed_post_vs_pre_event_rate_ratio": (
                 len(post_events) / len(pre_events)
