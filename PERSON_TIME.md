@@ -373,3 +373,21 @@ With non-zero schedule locking, the mismatch contributes:
 - an additional recovery-inertia term.
 
 Every node sample exposes the full rhythm state, including relative phase and daily drift.
+
+
+## ACOUSTIC-INDUCTION1 environmental forcing
+
+PERSON-TIME2 can compile `acoustic_induction.couplings` from the scenario and `acoustic_sources` from the timeline.
+
+At every RK4 evaluation:
+
+```math
+u_p = u_{base,p} + u_{event,p} + T s(t) + M_a \dot{s}(t)
+```
+
+Node samples expose:
+- acoustic_direct_drive;
+- acoustic_inductive_drive;
+- acoustic_total_drive.
+
+Sample-level `acoustic_effects` keeps source/coupling provenance.

@@ -947,3 +947,8 @@ Benchmarks what short RLC response traces can and cannot identify about another 
 **[RHYTHM-25H1 — per-person intrinsic-day dynamics](RHYTHM_25H1.md)**
 
 Adds an explicit internal cycle period per PERSON2 node. The canonical personal profile uses 25h for the central node and 24h for comparison neighbors. A 25h cycle produces no extra load while free-running; mismatch load appears only under explicit external 24h schedule locking. Person-specific initial accumulated load/heat/debt are independent variables.
+
+
+**[ACOUSTIC-INDUCTION1 — wall transmission and transient coupling](ACOUSTIC_INDUCTION1.md)**
+
+Adds a separate acoustic environmental layer: direct wall transmission `T*s(t)` plus an optional derivative/transient term `M_a*ds/dt`. PERSON-TIME2 and Family Safety expose acoustic provenance separately from social events. The derivative term must beat the direct-transmission baseline on held-out data to survive empirical validation.

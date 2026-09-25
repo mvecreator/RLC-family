@@ -16,6 +16,7 @@ try:
     from simulator import link_semiconductor as semi
     from simulator import channel_coupling as cc
     from simulator import personal_rhythm as rhythm
+    from simulator import acoustic_induction as acoustic
     from simulator import rlc_family_sim as core
     from simulator import time_solver as legacy_time
 except ModuleNotFoundError:
@@ -24,6 +25,7 @@ except ModuleNotFoundError:
     import link_semiconductor as semi
     import channel_coupling as cc
     import personal_rhythm as rhythm
+    import acoustic_induction as acoustic
     import rlc_family_sim as core
     import time_solver as legacy_time
 
@@ -403,7 +405,7 @@ def _pack(v, il, mem, reserve, debt):
     return tuple(v) + tuple(il) + tuple(mem) + (reserve, debt)
 
 
-def derivatives(t, state, scenario, base_ir, events, cfg, shares):
+def derivatives(t, state, scenario, base_ir, events, acoustic_ir, cfg, shares):
     n = len(base_ir["nodes"])
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
@@ -428,11 +430,21 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
         coupling[j] -= current
         link_currents.append((link, current))
 
+    acoustic_drive = acoustic.drive_at(
+        acoustic_ir,
+        t,
+        [node["id"] for node in nodes],
+    )
+
     dv = []
     dil = []
     dmem = []
     for i, node in enumerate(nodes):
-        source = global_drive * shares[node["id"]] + person_drive[node["id"]]
+        source = (
+            global_drive * shares[node["id"]]
+            + person_drive[node["id"]]
+            + acoustic_drive["total"][node["id"]]
+        )
         dv_i = (
             source
             - v[i] / node["R"]
@@ -504,13 +516,13 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
     return _pack(dv, dil, dmem, dreserve, ddebt)
 
 
-def _rk4(t, state, dt, scenario, base_ir, events, cfg, shares):
+def _rk4(t, state, dt, scenario, base_ir, events, acoustic_ir, cfg, shares):
     def add(a, b, scale):
         return tuple(x + scale*y for x, y in zip(a, b))
-    k1 = derivatives(t, state, scenario, base_ir, events, cfg, shares)
-    k2 = derivatives(t + dt/2, add(state, k1, dt/2), scenario, base_ir, events, cfg, shares)
-    k3 = derivatives(t + dt/2, add(state, k2, dt/2), scenario, base_ir, events, cfg, shares)
-    k4 = derivatives(t + dt, add(state, k3, dt), scenario, base_ir, events, cfg, shares)
+    k1 = derivatives(t, state, scenario, base_ir, events, acoustic_ir, cfg, shares)
+    k2 = derivatives(t + dt/2, add(state, k1, dt/2), scenario, base_ir, events, acoustic_ir, cfg, shares)
+    k3 = derivatives(t + dt/2, add(state, k2, dt/2), scenario, base_ir, events, acoustic_ir, cfg, shares)
+    k4 = derivatives(t + dt, add(state, k3, dt), scenario, base_ir, events, acoustic_ir, cfg, shares)
     out = tuple(
         x + dt * (a + 2*b + 2*c + d) / 6
         for x, a, b, c, d in zip(state, k1, k2, k3, k4)
@@ -535,7 +547,7 @@ def _apply_impulses(state, t0, events, node_index):
     return _pack(v, il, mem, reserve, debt)
 
 
-def _sample(t, state, scenario, base_ir, events, cfg):
+def _sample(t, state, scenario, base_ir, events, acoustic_ir, cfg):
     n = len(base_ir["nodes"])
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
@@ -544,6 +556,11 @@ def _sample(t, state, scenario, base_ir, events, cfg):
         base_ir, links, v, index
     )
     finance, fin_stress, income, load = _finance_state(scenario, reserve)
+    acoustic_drive = acoustic.drive_at(
+        acoustic_ir,
+        t,
+        [node["id"] for node in nodes],
+    )
 
     node_rows = []
     for i, node in enumerate(nodes):
@@ -558,6 +575,9 @@ def _sample(t, state, scenario, base_ir, events, cfg):
             "C": node["C"],
             "L": node["L"],
             "event_drive": person_drive[node["id"]],
+            "acoustic_direct_drive": acoustic_drive["direct"][node["id"]],
+            "acoustic_inductive_drive": acoustic_drive["inductive"][node["id"]],
+            "acoustic_total_drive": acoustic_drive["total"][node["id"]],
             "rhythm": {
                 **node["rhythm"],
                 **rhythm.state(node["rhythm"], t),
@@ -615,6 +635,7 @@ def _sample(t, state, scenario, base_ir, events, cfg):
         "monthly_income_equivalent": income,
         "monthly_load_equivalent": load,
         "active_events": [e["id"] for e in events if _active(e, t)],
+        "acoustic_effects": acoustic_drive["details"],
         "channel_coupling_effects": coupling_effects,
     }
 
@@ -726,6 +747,14 @@ def simulate_person_timeline(scenario, timeline):
     )
     shares = _source_weights(scenario, base_ir["nodes"])
     index = {pid: i for i, pid in enumerate(node_ids)}
+    try:
+        acoustic_ir = acoustic.compile_acoustic(
+            scenario,
+            timeline,
+            set(node_ids),
+        )
+    except ValueError as e:
+        raise core.ScenarioError(f"acoustic_induction: {e}") from e
 
     global_ir = core.compile_scenario(scenario)
     finance = global_ir["finance"]
@@ -761,7 +790,7 @@ def simulate_person_timeline(scenario, timeline):
     state = _pack(v0, il0, mem0, finance["reserve"], finance["debt"])
     state = _apply_impulses(state, 0.0, events, index)
 
-    samples = [_sample(0.0, state, scenario, base_ir, events, cfg)]
+    samples = [_sample(0.0, state, scenario, base_ir, events, acoustic_ir, cfg)]
     applied_times = {0.0}
     next_sample = sample_every
     t = 0.0
@@ -770,7 +799,7 @@ def simulate_person_timeline(scenario, timeline):
         if step <= 0:
             break
         t_next = t + step
-        state = _rk4(t, state, step, scenario, base_ir, events, cfg, shares)
+        state = _rk4(t, state, step, scenario, base_ir, events, acoustic_ir, cfg, shares)
         for event in events:
             et = event["start"]
             if et in applied_times:
@@ -780,7 +809,7 @@ def simulate_person_timeline(scenario, timeline):
                 applied_times.add(et)
         t = t_next
         if t + 1e-12 >= next_sample or t + 1e-12 >= days:
-            samples.append(_sample(t, state, scenario, base_ir, events, cfg))
+            samples.append(_sample(t, state, scenario, base_ir, events, acoustic_ir, cfg))
             while next_sample <= t + 1e-12:
                 next_sample += sample_every
 
@@ -793,6 +822,7 @@ def simulate_person_timeline(scenario, timeline):
             "L_p di_L,p/dt = v_p",
             "channel coupling = simultaneous base-read source modulation before branch current evaluation",
             "rhythm mismatch = explicit intrinsic-day vs external-schedule phase term; zero when schedule_lock=0",
+            "acoustic drive = transmission*s(t) + derivative_coupling_days*ds/dt",
             "dm_p/dt = local_excitation + link_stress + financial_stress - recovery",
             "dReserve/dt = (income-load)/days_per_month + impulses",
             "dDebt/dt = annual_rate/365*Debt - mortgage/days_per_month",
@@ -806,6 +836,11 @@ def simulate_person_timeline(scenario, timeline):
         },
         "events": events,
         "channel_couplings": base_ir.get("channel_couplings", []),
+        "acoustic_induction": {
+            "model_version": acoustic_ir.get("model_version"),
+            "couplings": acoustic_ir.get("couplings", []),
+            "sources": acoustic_ir.get("sources", []),
+        },
         "samples": samples,
         "summary": summary,
         "family_interpretation": interpret(summary),
@@ -860,6 +895,8 @@ def write_outputs(out, result):
     node_header = [
         "day", "id", "voltage", "inductor_current", "memory",
         "R", "C", "L", "event_drive",
+        "acoustic_direct_drive", "acoustic_inductive_drive",
+        "acoustic_total_drive",
     ]
     node_rows = [",".join(node_header)]
     link_header = [
@@ -876,6 +913,9 @@ def write_outputs(out, result):
                 day, node["id"], node["voltage"],
                 node["inductor_current"], node["memory"],
                 node["R"], node["C"], node["L"], node["event_drive"],
+                node.get("acoustic_direct_drive", 0.0),
+                node.get("acoustic_inductive_drive", 0.0),
+                node.get("acoustic_total_drive", 0.0),
             ]))
         for link in sample["links"]:
             link_rows.append(",".join(str(x) for x in [

@@ -108,8 +108,10 @@ def instantaneous_components(sample):
         excitation = norm(node["voltage"], 0.30)
         memory = clip01(node["memory"])
         incident = _incident_link_load(sample, pid)
+        event_drive = float(node.get("event_drive", 0.0))
+        acoustic_drive = float(node.get("acoustic_total_drive", 0.0))
         forcing = norm(
-            node.get("event_drive", 0.0),
+            event_drive + acoustic_drive,
             pload.FORCING_SCALE,
         )
         combined = pload.combine_components(
@@ -138,6 +140,14 @@ def instantaneous_components(sample):
             "incident_link_stress": incident,
             "financial_stress": financial,
             "forcing_exposure": forcing,
+            "event_drive": event_drive,
+            "acoustic_direct_drive": float(
+                node.get("acoustic_direct_drive", 0.0)
+            ),
+            "acoustic_inductive_drive": float(
+                node.get("acoustic_inductive_drive", 0.0)
+            ),
+            "acoustic_total_drive": acoustic_drive,
             "combined": combined,
         }
 
