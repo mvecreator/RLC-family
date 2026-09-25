@@ -405,3 +405,19 @@ Therefore thermal post-processing sees the coupled trajectory.
 However thermal heat/damage are not fed back into PERSON-TIME2 yet.
 
 That future feedback requires the separate THERMAL-FEEDBACK1 gate.
+
+
+## RHYTHM-25H1 cooling modulation
+
+Person cooling now uses the same rhythm mismatch as PERSON-TIME2.
+
+A mismatch can increase effective recovery inertia only when `schedule_lock > 0`.
+
+Per-person thermal initial conditions are supported:
+
+```text
+initial_heat
+initial_recovery_debt
+```
+
+Legacy defaults remain unchanged when these fields are absent.

@@ -1,0 +1,8 @@
+{
+  "simulation": {
+    "days": 12.0,
+    "dt_days": 0.01,
+    "sample_every_days": 0.10
+  },
+  "events": []
+}

@@ -705,3 +705,45 @@ synthetic policy consequence
 > Реальный человек именно так оценил пользователя и поэтому выбрал конкретную стратегию.
 
 PERCEPTION-ID1 предназначен для проверки идентифицируемости модели и ошибок synthetic observer, а не для mind-reading.
+
+
+---
+
+## Индивидуальный ритм RHYTHM-25H1
+
+Если пользователь задаёт 25-часовой образ жизни, не трактовать это автоматически как болезнь, стресс или нарушение сна.
+
+Разделять:
+
+```text
+intrinsic_day_hours
+external_day_hours
+schedule_lock
+phase mismatch
+initial accumulated state
+```
+
+Ключевой invariant:
+
+```text
+25h + schedule_lock=0
+=> no rhythm load
+```
+
+Нагрузка появляется только если внутренний ритм конфликтует с явно заданным внешним расписанием.
+
+Также не выводить:
+
+```text
+smoking/alcohol => high load
+```
+
+без отдельной калиброванной модели. Если есть гипотеза о большем накопленном состоянии, задавать напрямую:
+
+```text
+initial_accumulated_load
+initial_heat
+initial_recovery_debt
+```
+
+и оставлять причину неизвестной/внешней гипотезой.

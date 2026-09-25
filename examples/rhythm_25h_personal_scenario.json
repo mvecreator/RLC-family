@@ -1,0 +1,157 @@
+{
+  "название": "RHYTHM-25H1 personal 25h cycle with 24h neighbors",
+  "rhythm_model": {
+    "external_day_hours": 24.0
+  },
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "central",
+      "type": "adult",
+      "source_weight": 1.0,
+      "initial_memory": 0.20,
+      "initial_accumulated_load": 0.20,
+      "initial_heat": 0.15,
+      "initial_recovery_debt": 0.0,
+      "rhythm": {
+        "intrinsic_day_hours": 25.0,
+        "schedule_lock": 0.70,
+        "mismatch_load_gain": 0.20,
+        "recovery_penalty_gain": 0.25,
+        "phase_offset_hours": 0.0
+      },
+      "role": {
+        "work_provider": 0.65,
+        "decision_initiative": 0.65,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.45,
+        "recovery_inertia": 0.55
+      }
+    },
+    {
+      "id": "n1",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.28,
+      "initial_accumulated_load": 0.34,
+      "initial_heat": 0.24,
+      "initial_recovery_debt": 0.08,
+      "initial_load_context": "unknown_prior_state_hypothesis",
+      "rhythm": {
+        "intrinsic_day_hours": 24.0,
+        "schedule_lock": 0.70
+      },
+      "role": {
+        "work_provider": 0.60,
+        "decision_initiative": 0.60,
+        "external_activity": 0.55,
+        "caregiver": 0.30,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "n2",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.30,
+      "initial_accumulated_load": 0.38,
+      "initial_heat": 0.28,
+      "initial_recovery_debt": 0.12,
+      "initial_load_context": "unknown_prior_state_hypothesis",
+      "rhythm": {
+        "intrinsic_day_hours": 24.0,
+        "schedule_lock": 0.70
+      },
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.60,
+        "external_activity": 0.55,
+        "caregiver": 0.40,
+        "domestic_load": 0.40,
+        "recovery_inertia": 0.52
+      }
+    },
+    {
+      "id": "n3",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.26,
+      "initial_accumulated_load": 0.32,
+      "initial_heat": 0.22,
+      "initial_recovery_debt": 0.06,
+      "initial_load_context": "unknown_prior_state_hypothesis",
+      "rhythm": {
+        "intrinsic_day_hours": 24.0,
+        "schedule_lock": 0.70
+      },
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.55,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.40,
+        "recovery_inertia": 0.48
+      }
+    }
+  ],
+  "связи_персонажей": [
+    {
+      "link_id": "n1-central",
+      "from": "n1",
+      "to": "central",
+      "communication_quality": 0.75,
+      "contact_frequency": 0.45,
+      "availability": 0.70,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "n2-central",
+      "from": "n2",
+      "to": "central",
+      "communication_quality": 0.75,
+      "contact_frequency": 0.45,
+      "availability": 0.70,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "n3-central",
+      "from": "n3",
+      "to": "central",
+      "communication_quality": 0.75,
+      "contact_frequency": 0.45,
+      "availability": 0.70,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
+    }
+  ],
+  "отношения": {
+    "напряженность": 0.20,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.20
+  },
+  "связь": {
+    "качество_проводника": 0.80,
+    "усиление_эмоций": 1.0,
+    "фильтр_критического_мышления": 0.80,
+    "усиление_антенны": 0.20,
+    "внешний_фон": 0.05,
+    "сброс_через_антенну": 0.30,
+    "согласование_собеседника": 0.80
+  },
+  "финансы": {
+    "доходы_в_месяц": [1.0],
+    "ипотека_в_месяц": 0.0,
+    "базовые_расходы_в_месяц": 0.55,
+    "прочие_расходы_в_месяц": 0.15,
+    "резерв": 4.0,
+    "долг_по_ипотеке": 0.0,
+    "ставка_годовая": 0.0
+  }
+}

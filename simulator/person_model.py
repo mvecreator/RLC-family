@@ -12,10 +12,12 @@ try:
     from simulator import rlc_family_sim as core
     from simulator import link_semiconductor as semi
     from simulator import channel_coupling as cc
+    from simulator import personal_rhythm as rhythm
 except ModuleNotFoundError:
     import rlc_family_sim as core
     import link_semiconductor as semi
     import channel_coupling as cc
+    import personal_rhythm as rhythm
 
 VERSION = "RLC-FAMILY-PERSON2-0.1"
 
@@ -441,6 +443,24 @@ def compile_person_network(scenario):
         raise core.ScenarioError("персонажи must be a non-empty list")
     cfg = _config(scenario)
     nodes = [compile_person(p, cfg) for p in raw]
+    rhythm_model = scenario.get("rhythm_model") or {}
+    if not isinstance(rhythm_model, dict):
+        raise core.ScenarioError("rhythm_model must be object")
+    raw_by_id = {
+        str(person.get("id")): person
+        for person in raw
+        if isinstance(person, dict)
+    }
+    for node in nodes:
+        try:
+            node["rhythm"] = rhythm.compile_person_rhythm(
+                raw_by_id[node["id"]],
+                rhythm_model,
+            )
+        except ValueError as e:
+            raise core.ScenarioError(
+                f"{node['id']}.rhythm: {e}"
+            ) from e
     ids = [n["id"] for n in nodes]
     if len(set(ids)) != len(ids):
         raise core.ScenarioError("person ids must be unique")

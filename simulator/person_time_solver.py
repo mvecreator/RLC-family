@@ -15,6 +15,7 @@ try:
     from simulator import person_network_solver as pnet
     from simulator import link_semiconductor as semi
     from simulator import channel_coupling as cc
+    from simulator import personal_rhythm as rhythm
     from simulator import rlc_family_sim as core
     from simulator import time_solver as legacy_time
 except ModuleNotFoundError:
@@ -22,6 +23,7 @@ except ModuleNotFoundError:
     import person_network_solver as pnet
     import link_semiconductor as semi
     import channel_coupling as cc
+    import personal_rhythm as rhythm
     import rlc_family_sim as core
     import time_solver as legacy_time
 
@@ -464,6 +466,12 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
         )
         role = raw.get("role") or {}
         recovery = float(raw.get("recovery_inertia", role.get("recovery_inertia", 0.5)))
+        rhythm_state = rhythm.state(node["rhythm"], t)
+        effective_recovery_inertia = pm.clip(
+            recovery + rhythm_state["recovery_inertia_add"],
+            0.0,
+            1.0,
+        )
 
         excitation_gain = float(cfg.get("person_excitation_memory_gain", 0.035))
         flow_gain = float(cfg.get("person_link_flow_memory_gain", 0.010))
@@ -477,8 +485,9 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
             + flow_gain * local_flow
             + poor_gain * poor_link_stress
             + finance_gain * fin_stress
+            + rhythm_state["schedule_mismatch_load"]
             - decay * mem[i]
-            - recovery_gain * (1.0 - recovery) * mem[i]
+            - recovery_gain * (1.0 - effective_recovery_inertia) * mem[i]
         )
 
         dv.append(dv_i)
@@ -549,6 +558,13 @@ def _sample(t, state, scenario, base_ir, events, cfg):
             "C": node["C"],
             "L": node["L"],
             "event_drive": person_drive[node["id"]],
+            "rhythm": {
+                **node["rhythm"],
+                **rhythm.state(node["rhythm"], t),
+                "daily_phase_drift_hours": rhythm.daily_phase_drift_hours(
+                    node["rhythm"]
+                ),
+            },
         })
 
     link_rows = []
@@ -776,6 +792,7 @@ def simulate_person_timeline(scenario, timeline):
             "C_p dv_p/dt = u_p(t) - v_p/R_p - i_L,p - sum(I_branch)",
             "L_p di_L,p/dt = v_p",
             "channel coupling = simultaneous base-read source modulation before branch current evaluation",
+            "rhythm mismatch = explicit intrinsic-day vs external-schedule phase term; zero when schedule_lock=0",
             "dm_p/dt = local_excitation + link_stress + financial_stress - recovery",
             "dReserve/dt = (income-load)/days_per_month + impulses",
             "dDebt/dt = annual_rate/365*Debt - mortgage/days_per_month",
