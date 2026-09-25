@@ -4,37 +4,43 @@
     {
       "group_id": "household1_solo",
       "household_kind": "solo",
-      "members": ["solo1"]
+      "members": [
+        "solo1"
+      ]
     },
     {
       "group_id": "household2_family3",
       "household_kind": "couple_plus_adult_child",
-      "members": ["fam2_husband", "fam2_wife", "fam2_adult_son"]
+      "members": [
+        "fam2_husband",
+        "fam2_wife",
+        "fam2_adult_son"
+      ]
     },
     {
       "group_id": "household3_couple",
       "household_kind": "couple",
-      "members": ["couple3_husband", "couple3_wife"]
+      "members": [
+        "couple3_husband",
+        "couple3_wife"
+      ]
     }
   ],
-
-  "window_days": 6.0,
+  "window_days": 6,
   "sync_tolerance_days": 0.12,
-
   "intervention": {
     "id": "external-support-contact",
-    "at_day": 6.0,
+    "at_day": 6,
     "central_memory_relief": 0.12,
     "central_drive_relief": 0.08,
-    "relief_duration_days": 0.50
+    "relief_duration_days": 0.5
   },
-
   "observed_stimuli": [
     {
       "id": "pre-h1-01",
       "source_group_id": "household1_solo",
       "kind": "observed_household_event",
-      "at_day": 0.80,
+      "at_day": 0.8,
       "duration_days": 0.18,
       "amplitude": 0.42
     },
@@ -54,13 +60,12 @@
       "duration_days": 0.18,
       "amplitude": 0.42
     },
-
     {
       "id": "pre-h1-02",
       "source_group_id": "household1_solo",
       "kind": "observed_household_event",
-      "at_day": 2.00,
-      "duration_days": 0.20,
+      "at_day": 2,
+      "duration_days": 0.2,
       "amplitude": 0.45
     },
     {
@@ -68,7 +73,7 @@
       "source_group_id": "household2_family3",
       "kind": "observed_household_event",
       "at_day": 2.07,
-      "duration_days": 0.20,
+      "duration_days": 0.2,
       "amplitude": 0.45
     },
     {
@@ -76,15 +81,14 @@
       "source_group_id": "household3_couple",
       "kind": "observed_household_event",
       "at_day": 2.14,
-      "duration_days": 0.20,
+      "duration_days": 0.2,
       "amplitude": 0.45
     },
-
     {
       "id": "pre-h1-03",
       "source_group_id": "household1_solo",
       "kind": "observed_household_event",
-      "at_day": 3.40,
+      "at_day": 3.4,
       "duration_days": 0.16,
       "amplitude": 0.48
     },
@@ -104,22 +108,27 @@
       "duration_days": 0.16,
       "amplitude": 0.48
     },
-
     {
       "id": "post-h2-01",
       "source_group_id": "household2_family3",
       "kind": "observed_household_event",
-      "at_day": 8.00,
-      "duration_days": 0.10,
+      "at_day": 8,
+      "duration_days": 0.1,
       "amplitude": 0.18
     },
     {
       "id": "post-h1-01",
       "source_group_id": "household1_solo",
       "kind": "observed_household_event",
-      "at_day": 10.20,
+      "at_day": 10.2,
       "duration_days": 0.06,
-      "amplitude": 0.20
+      "amplitude": 0.2
     }
-  ]
+  ],
+  "household_probe": {
+    "at_day": 1,
+    "duration_days": 0.2,
+    "amplitude": 0.45,
+    "measure_window_days": 2
+  }
 }
