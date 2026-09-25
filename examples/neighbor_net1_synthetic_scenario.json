@@ -1,0 +1,165 @@
+{
+  "название": "NEIGHBOR-NET1 synthetic three-neighbor topology",
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "central",
+      "type": "adult",
+      "source_weight": 1.0,
+      "initial_memory": 0.20,
+      "role": {
+        "work_provider": 0.65,
+        "decision_initiative": 0.65,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.45,
+        "recovery_inertia": 0.55
+      }
+    },
+    {
+      "id": "n1",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.55,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "n2",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.55,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "n3",
+      "type": "adult",
+      "source_weight": 0.0,
+      "initial_memory": 0.15,
+      "role": {
+        "work_provider": 0.55,
+        "decision_initiative": 0.55,
+        "external_activity": 0.55,
+        "caregiver": 0.35,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.50
+      }
+    }
+  ],
+  "связи_персонажей": [
+    {
+      "link_id": "n1-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "n1",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "n2-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "n2",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "n3-central.observation",
+      "channel_kind": "environmental_observation",
+      "from": "n3",
+      "to": "central",
+      "communication_quality": 0.72,
+      "contact_frequency": 0.75,
+      "availability": 0.90,
+      "hostility": 0.05,
+      "element_type": "DIODE",
+      "forward_threshold": 0.02,
+      "softness": 0.02,
+      "reverse_ratio": 0.03
+    },
+    {
+      "link_id": "n1-n2.social",
+      "channel_kind": "social_contact",
+      "from": "n1",
+      "to": "n2",
+      "communication_quality": 0.85,
+      "contact_frequency": 0.70,
+      "availability": 0.80,
+      "hostility": 0.02,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "n2-n3.social",
+      "channel_kind": "social_contact",
+      "from": "n2",
+      "to": "n3",
+      "communication_quality": 0.85,
+      "contact_frequency": 0.70,
+      "availability": 0.80,
+      "hostility": 0.02,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "n1-n3.social",
+      "channel_kind": "social_contact",
+      "from": "n1",
+      "to": "n3",
+      "communication_quality": 0.85,
+      "contact_frequency": 0.70,
+      "availability": 0.80,
+      "hostility": 0.02,
+      "element_type": "RESISTIVE"
+    }
+  ],
+  "отношения": {
+    "напряженность": 0.20,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.15
+  },
+  "связь": {
+    "качество_проводника": 0.80,
+    "усиление_эмоций": 1.0,
+    "фильтр_критического_мышления": 0.80,
+    "усиление_антенны": 0.20,
+    "внешний_фон": 0.05,
+    "сброс_через_антенну": 0.30,
+    "согласование_собеседника": 0.80
+  },
+  "финансы": {
+    "доходы_в_месяц": [1.0],
+    "ипотека_в_месяц": 0.0,
+    "базовые_расходы_в_месяц": 0.55,
+    "прочие_расходы_в_месяц": 0.15,
+    "резерв": 4.0,
+    "долг_по_ипотеке": 0.0,
+    "ставка_годовая": 0.0
+  }
+}

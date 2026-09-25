@@ -1,0 +1,136 @@
+{
+  "central_person_id": "central",
+  "neighbor_ids": ["n1", "n2", "n3"],
+  "window_days": 6.0,
+  "sync_tolerance_days": 0.12,
+  "intervention": {
+    "id": "external-support-contact",
+    "at_day": 6.0,
+    "central_memory_relief": 0.12,
+    "central_drive_relief": 0.08,
+    "relief_duration_days": 0.50
+  },
+  "observed_stimuli": [
+    {
+      "id": "pre-n1-01",
+      "source_id": "n1",
+      "kind": "loud_conversation",
+      "at_day": 0.80,
+      "duration_days": 0.20,
+      "amplitude": 0.38
+    },
+    {
+      "id": "pre-n2-01",
+      "source_id": "n2",
+      "kind": "door_knock",
+      "at_day": 0.86,
+      "duration_days": 0.08,
+      "amplitude": 0.48
+    },
+    {
+      "id": "pre-n3-01",
+      "source_id": "n3",
+      "kind": "visible_at_door",
+      "at_day": 0.91,
+      "duration_days": 0.12,
+      "amplitude": 0.30
+    },
+    {
+      "id": "pre-n1-02",
+      "source_id": "n1",
+      "kind": "loud_conversation",
+      "at_day": 2.00,
+      "duration_days": 0.25,
+      "amplitude": 0.42
+    },
+    {
+      "id": "pre-n2-02",
+      "source_id": "n2",
+      "kind": "door_knock",
+      "at_day": 2.07,
+      "duration_days": 0.08,
+      "amplitude": 0.52
+    },
+    {
+      "id": "pre-n3-02",
+      "source_id": "n3",
+      "kind": "loud_conversation",
+      "at_day": 2.14,
+      "duration_days": 0.20,
+      "amplitude": 0.36
+    },
+    {
+      "id": "pre-n1-03",
+      "source_id": "n1",
+      "kind": "door_knock",
+      "at_day": 3.40,
+      "duration_days": 0.08,
+      "amplitude": 0.55
+    },
+    {
+      "id": "pre-n2-03",
+      "source_id": "n2",
+      "kind": "loud_conversation",
+      "at_day": 3.47,
+      "duration_days": 0.22,
+      "amplitude": 0.40
+    },
+    {
+      "id": "pre-n3-03",
+      "source_id": "n3",
+      "kind": "visible_at_door",
+      "at_day": 3.54,
+      "duration_days": 0.12,
+      "amplitude": 0.32
+    },
+    {
+      "id": "pre-n1-04",
+      "source_id": "n1",
+      "kind": "loud_conversation",
+      "at_day": 5.00,
+      "duration_days": 0.24,
+      "amplitude": 0.45
+    },
+    {
+      "id": "pre-n2-04",
+      "source_id": "n2",
+      "kind": "door_knock",
+      "at_day": 5.08,
+      "duration_days": 0.08,
+      "amplitude": 0.50
+    },
+    {
+      "id": "pre-n3-04",
+      "source_id": "n3",
+      "kind": "loud_conversation",
+      "at_day": 5.15,
+      "duration_days": 0.18,
+      "amplitude": 0.34
+    },
+
+    {
+      "id": "post-n2-01",
+      "source_id": "n2",
+      "kind": "loud_conversation",
+      "at_day": 7.40,
+      "duration_days": 0.12,
+      "amplitude": 0.18
+    },
+    {
+      "id": "post-n1-01",
+      "source_id": "n1",
+      "kind": "door_knock",
+      "at_day": 9.20,
+      "duration_days": 0.05,
+      "amplitude": 0.22
+    },
+    {
+      "id": "post-n3-01",
+      "source_id": "n3",
+      "kind": "loud_conversation",
+      "at_day": 11.00,
+      "duration_days": 0.10,
+      "amplitude": 0.16
+    }
+  ]
+}

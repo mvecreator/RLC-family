@@ -23,6 +23,7 @@ try:
     from simulator import person_family_safety as family_safety
     from simulator import thermal_recovery as thermal_recovery
     from simulator import recovery_scenarios as recovery_scenarios
+    from simulator import neighbor_network as neighbor_network
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
@@ -30,6 +31,7 @@ except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import person_family_safety as family_safety
     import thermal_recovery
     import recovery_scenarios
+    import neighbor_network
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -431,6 +433,13 @@ def solve_problem(scenario, problem):
             profile_names=profiles,
             lookback_days=float(problem.get("lookback_days", 3.0)),
         )
+    if ptype == "neighbor_network":
+        spec = problem.get("neighbor_spec")
+        if not isinstance(spec, dict):
+            raise core.ScenarioError(
+                "neighbor_network requires neighbor_spec object"
+            )
+        return neighbor_network.analyze(scenario, spec)
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {

@@ -388,3 +388,45 @@ as explicit hypotheses.
 CHANNEL-COUPLING-CAL1 defines 15 mechanics/provenance gates.
 
 Accumulated LINK-THERM heat/damage are not yet feedback sources; THERMAL-FEEDBACK1 is deferred.
+
+
+## 16. NEIGHBOR-NET1
+
+A household-aware small-network signal layer is implemented above PERSON-TIME2.
+
+Canonical topologies:
+
+```text
+three solo neighbor nodes
+
+and
+
+household1: solo
+household2: couple + adult son
+household3: couple
+```
+
+Observed events may target an explicit member or an entire household.
+
+Household-level amplitude is normalized across members so a larger household does not receive a larger injected input merely because it has more nodes.
+
+The model distinguishes:
+- household_internal links;
+- cross_household_social links;
+- environmental_observation links toward the central node.
+
+Equal-input household probes compare central waveform response for different household topologies while preserving total amplitude and exposure.
+
+Separate counterfactuals remove household-internal links and cross-household links without changing event history.
+
+Pre/post intervention analysis separates:
+- declared central relief;
+- observed change in event regime;
+- continued-prepattern counterfactual;
+- desynchronized timing counterfactual.
+
+Temporal alignment is a signal statistic only. `intent_inferred=false` is explicit.
+
+NEIGHBOR-NET-CAL1 defines 20 mechanics/accounting/causal-boundary gates.
+
+Explicit mutual inductance is deferred until it demonstrates value beyond this ordinary-network baseline.

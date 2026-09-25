@@ -1,0 +1,33 @@
+{
+  "type": "neighbor_network",
+  "neighbor_spec": {
+    "central_person_id": "central",
+    "neighbor_households": [
+      {
+        "group_id": "household1_solo",
+        "household_kind": "solo",
+        "members": ["solo1"]
+      },
+      {
+        "group_id": "household2_family3",
+        "household_kind": "couple_plus_adult_child",
+        "members": ["fam2_husband", "fam2_wife", "fam2_adult_son"]
+      },
+      {
+        "group_id": "household3_couple",
+        "household_kind": "couple",
+        "members": ["couple3_husband", "couple3_wife"]
+      }
+    ],
+    "window_days": 6.0,
+    "sync_tolerance_days": 0.12,
+    "intervention": {
+      "id": "external-support-contact",
+      "at_day": 6.0,
+      "central_memory_relief": 0.12,
+      "central_drive_relief": 0.08,
+      "relief_duration_days": 0.50
+    },
+    "observed_stimuli": []
+  }
+}
