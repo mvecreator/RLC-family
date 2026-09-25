@@ -12,7 +12,7 @@ class Rhythm25hTests(unittest.TestCase):
     def test_calibration_suite_passes(self):
         result = cal.suite()
         self.assertTrue(result["all_pass"])
-        self.assertEqual(result["passed"], 14)
+        self.assertEqual(result["passed"], 15)
 
     def test_25h_drift_is_about_minus_0_96_external_hours_per_day(self):
         compiled = rhythm.compile_person_rhythm(
