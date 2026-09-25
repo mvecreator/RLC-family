@@ -398,8 +398,16 @@ def _window_events(compiled, lo, hi):
     ]
 
 
+def _event_source_axis(event):
+    return str(
+        event.get("source_group_id")
+        or event.get("source_id")
+        or "unknown"
+    )
+
+
 def temporal_alignment_index(events, neighbor_ids, tolerance_days):
-    """Fraction of events aligned with another source within tolerance.
+    """Fraction of events aligned with another household/source.
 
     This is a timing statistic. It does not infer communication or intent.
     """
@@ -407,8 +415,9 @@ def temporal_alignment_index(events, neighbor_ids, tolerance_days):
         return 0.0
     aligned = 0
     for event in events:
+        source_axis = _event_source_axis(event)
         hit = any(
-            other["source_id"] != event["source_id"]
+            _event_source_axis(other) != source_axis
             and abs(other["at_day"] - event["at_day"]) <= tolerance_days
             for other in events
         )
@@ -418,11 +427,19 @@ def temporal_alignment_index(events, neighbor_ids, tolerance_days):
 
 
 def event_metrics(events, neighbor_ids, window_days, tolerance_days):
-    by_source = {pid: 0 for pid in neighbor_ids}
+    household_ids = sorted({
+        _event_source_axis(event) for event in events
+    })
+    by_household = {gid: 0 for gid in household_ids}
+    by_member = {pid: 0 for pid in neighbor_ids}
     amplitude_sum = 0.0
     exposure_area = 0.0
     for event in events:
-        by_source[event["source_id"]] += 1
+        by_household[_event_source_axis(event)] += 1
+        if event.get("source_id") is not None:
+            by_member[event["source_id"]] = (
+                by_member.get(event["source_id"], 0) + 1
+            )
         amplitude_sum += event["amplitude"]
         exposure_area += (
             event["amplitude"] * event["duration_days"]
@@ -434,7 +451,8 @@ def event_metrics(events, neighbor_ids, window_days, tolerance_days):
             amplitude_sum / len(events) if events else 0.0
         ),
         "exposure_area": exposure_area,
-        "events_by_source": by_source,
+        "events_by_household": by_household,
+        "events_by_explicit_member": by_member,
         "temporal_alignment_index": temporal_alignment_index(
             events,
             neighbor_ids,
@@ -484,7 +502,10 @@ def desynchronized_pre_stimuli(compiled):
     if len(pre) <= 1:
         return copy.deepcopy(compiled["observed_stimuli"])
 
-    ordered = sorted(pre, key=lambda e: (e["source_id"], e["id"]))
+    ordered = sorted(
+        pre,
+        key=lambda e: (_event_source_axis(e), e["id"]),
+    )
     gap = window / (len(ordered) + 1)
     remapped = []
     for idx, event in enumerate(ordered, start=1):
@@ -622,6 +643,7 @@ def analyze(scenario, spec):
         "model_version": VERSION,
         "central_person_id": compiled["central_person_id"],
         "neighbor_ids": compiled["neighbor_ids"],
+        "neighbor_households": compiled["neighbor_households"],
         "intervention": compiled["intervention"],
         "event_windows": {
             "pre": event_metrics(
