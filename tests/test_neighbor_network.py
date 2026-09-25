@@ -22,7 +22,7 @@ class NeighborNetTests(unittest.TestCase):
     def test_calibration_suite_passes(self):
         result = cal.suite()
         self.assertTrue(result["all_pass"])
-        self.assertEqual(result["passed"], 18)
+        self.assertEqual(result["passed"], 20)
 
     def test_temporal_alignment_is_not_intent_classifier(self):
         compiled = nn.compile_spec(self.scenario, self.spec)
@@ -126,6 +126,24 @@ class NeighborNetTests(unittest.TestCase):
                 "household2_family3",
                 "household3_couple",
             },
+        )
+
+
+    def test_cross_household_links_are_explicit_and_counterfactualized(self):
+        scenario = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_scenario.json"
+        )
+        spec = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_spec.json"
+        )
+        result = nn.analyze(scenario, spec)
+        cross_links = [
+            link for link in scenario["связи_персонажей"]
+            if link.get("channel_kind") == "cross_household_social"
+        ]
+        self.assertEqual(len(cross_links), 3)
+        self.assertFalse(
+            result["cross_household_social_effect"]["direction_precommitted"]
         )
 
 
