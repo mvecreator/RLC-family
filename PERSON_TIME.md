@@ -358,3 +358,18 @@ channel_coupling_effects
 with source, target, activation and signed delta provenance.
 
 Rule ordering in scenario JSON cannot change same-instant results.
+
+
+## RHYTHM-25H1 intrinsic-day phase
+
+PERSON-TIME2 now carries per-person rhythm metadata.
+
+At every derivative evaluation, the solver computes the phase mismatch between the person's declared intrinsic cycle and the external schedule.
+
+With `schedule_lock=0`, rhythm does not alter the dynamics.
+
+With non-zero schedule locking, the mismatch contributes:
+- an explicit memory-load term;
+- an additional recovery-inertia term.
+
+Every node sample exposes the full rhythm state, including relative phase and daily drift.
