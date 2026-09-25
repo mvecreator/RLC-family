@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from pathlib import Path
 
 from simulator import neighbor_network as nn
@@ -28,6 +29,36 @@ def suite():
 
     compiled = nn.compile_spec(scenario, spec)
     result = nn.analyze(scenario, spec)
+
+
+    household_scenario = load_json(
+        ROOT / "examples" / "neighbor_net1_households_scenario.json"
+    )
+    household_spec = load_json(
+        ROOT / "examples" / "neighbor_net1_households_spec.json"
+    )
+    household_compiled = nn.compile_spec(
+        household_scenario,
+        household_spec,
+    )
+    household_result = nn.analyze(
+        household_scenario,
+        household_spec,
+    )
+
+    family_event = next(
+        event for event in household_compiled["observed_stimuli"]
+        if event["source_group_id"] == "household2_family3"
+    )
+    family_timeline = nn.timeline_from_spec(
+        household_compiled,
+        include_relief=False,
+        stimuli=[family_event],
+    )
+    family_expanded = [
+        event for event in family_timeline["events"]
+        if event["id"].startswith(family_event["id"])
+    ]
 
     t0 = compiled["intervention"]["at_day"]
     window = compiled["window_days"]
@@ -163,6 +194,89 @@ def suite():
             and "caused neighbors to change behavior"
             in result["causal_boundary"]
         ),
+        "NN13_HOUSEHOLD_COMPOSITION_COMPILES": (
+            {
+                h["group_id"]: len(h["members"])
+                for h in household_compiled["neighbor_households"]
+            }
+            == {
+                "household1_solo": 1,
+                "household2_family3": 3,
+                "household3_couple": 2,
+            }
+        ),
+        "NN14_GROUP_INPUT_IS_CONSERVED_WHEN_DISTRIBUTED": (
+            len(family_expanded) == 3
+            and abs(
+                sum(event["drive_add"] for event in family_expanded)
+                - family_event["amplitude"]
+            ) < 1e-12
+            and abs(sum(family_event["member_weights"].values()) - 1.0)
+            < 1e-12
+        ),
+        "NN15_HOUSEHOLD_PROBE_USES_EQUAL_TOTAL_INPUT": (
+            household_result["household_transfer_probe"]["probe"][
+                "equal_total_input_across_households"
+            ] is True
+            and len({
+                round(item["total_input_amplitude"], 12)
+                for item in household_result["household_transfer_probe"][
+                    "households"
+                ].values()
+            }) == 1
+            and len({
+                round(item["total_input_exposure_area"], 12)
+                for item in household_result["household_transfer_probe"][
+                    "households"
+                ].values()
+            }) == 1
+        ),
+        "NN16_HOUSEHOLD_TOPOLOGY_RESPONSES_ARE_ALL_COMPUTED": (
+            set(
+                household_result["household_transfer_probe"][
+                    "central_peak_load_delta_ranking"
+                ]
+            )
+            == {
+                "household1_solo",
+                "household2_family3",
+                "household3_couple",
+            }
+            and all(
+                item["central_response_delta"][
+                    "peak_abs_load_delta"
+                ]["abs_value"] >= 0.0
+                for item in household_result[
+                    "household_transfer_probe"
+                ]["households"].values()
+            )
+        ),
+        "NN17_SOLO_IS_INVARIANT_TO_REMOVING_HOUSEHOLD_INTERNAL_LINKS": (
+            abs(
+                household_result["household_topology_effect"][
+                    "household1_solo"
+                ]["difference"]
+            ) < 1e-12
+        ),
+        "NN18_FAMILY_AND_COUPLE_INTERNAL_TOPOLOGY_COUNTERFACTUALS_EXIST": (
+            set(household_result["household_topology_effect"])
+            == {
+                "household1_solo",
+                "household2_family3",
+                "household3_couple",
+            }
+            and all(
+                math.isfinite(
+                    household_result["household_topology_effect"][gid][
+                        "difference"
+                    ]
+                )
+                for gid in (
+                    "household2_family3",
+                    "household3_couple",
+                )
+            )
+        ),
     }
 
     return {
@@ -187,6 +301,15 @@ def suite():
             "central_pre_no_stimulus": no_stimulus[
                 "central_response"
             ]["pre_actual"],
+            "household_composition": household_compiled[
+                "neighbor_households"
+            ],
+            "household_transfer_probe": household_result[
+                "household_transfer_probe"
+            ],
+            "household_topology_effect": household_result[
+                "household_topology_effect"
+            ],
         },
         "checks": checks,
         "passed": sum(checks.values()),
