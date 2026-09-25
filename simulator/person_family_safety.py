@@ -119,9 +119,20 @@ def instantaneous_components(sample):
             financial,
             forcing,
         )
+        rhythm_state = node.get("rhythm") or {}
         persons[pid] = {
             "kind": node.get("kind"),
             "age": node.get("age"),
+            "rhythm": rhythm_state,
+            "intrinsic_day_hours": rhythm_state.get(
+                "intrinsic_day_hours", 24.0
+            ),
+            "phase_mismatch": float(
+                rhythm_state.get("phase_mismatch", 0.0)
+            ),
+            "schedule_mismatch_load": float(
+                rhythm_state.get("schedule_mismatch_load", 0.0)
+            ),
             "excitation": excitation,
             "memory": memory,
             "incident_link_stress": incident,
