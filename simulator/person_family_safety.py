@@ -50,11 +50,16 @@ def _node_map(sample):
 
 
 def _link_key(link):
-    return "->".join(sorted((str(link["from"]), str(link["to"]))))
+    return str(
+        link.get(
+            "link_id",
+            "->".join(sorted((str(link["from"]), str(link["to"])))),
+        )
+    )
 
 
 def _incident_link_load(sample, pid):
-    values = []
+    by_pair = {}
     for link in sample["links"]:
         if pid not in (link["from"], link["to"]):
             continue
@@ -69,9 +74,30 @@ def _incident_link_load(sample, pid):
             + 0.35 * hostility
         )
         flow = norm(link["current_abs"], 0.15)
-        values.append(friction * flow)
-    return sum(values) / len(values) if values else 0.0
+        pair = str(
+            link.get(
+                "pair_id",
+                "->".join(sorted((str(link["from"]), str(link["to"])))),
+            )
+        )
+        by_pair.setdefault(pair, []).append(
+            clip01(friction * flow)
+        )
 
+    if not by_pair:
+        return 0.0
+
+    pair_values = []
+    for values in by_pair.values():
+        # MULTI-LINK1: combine only parallel branches within the same pair.
+        # One branch remains exact; extra branches cannot dilute that pair.
+        remaining = 1.0
+        for value in values:
+            remaining *= 1.0 - value
+        pair_values.append(clip01(1.0 - remaining))
+
+    # Preserve the legacy behavior across distinct relationship pairs.
+    return sum(pair_values) / len(pair_values)
 
 def instantaneous_components(sample):
     nodes = _node_map(sample)
@@ -144,6 +170,13 @@ def instantaneous_components(sample):
             + 0.10 * financial
         )
         links[key] = {
+            "link_id": key,
+            "pair_id": link.get(
+                "pair_id",
+                "->".join(sorted((a, b))),
+            ),
+            "channel_kind": link.get("channel_kind", "generic"),
+            "parallel_branch_count": link.get("parallel_branch_count", 1),
             "from": a,
             "to": b,
             "element_type": link.get("element_type", "RESISTIVE"),
@@ -276,6 +309,73 @@ def _mean_components(rows, key):
     for field in fields:
         values = [row["links"][key][field] for row in rows]
         out[field] = sum(values) / len(values)
+    return out
+
+
+
+def _summarize_pairs(rows):
+    groups = {}
+    first_links = rows[0]["links"]
+    for link_id, item in first_links.items():
+        pid = item.get("pair_id", "->".join(sorted((item["from"], item["to"]))))
+        groups.setdefault(pid, []).append(link_id)
+
+    out = {}
+    for pid, branch_ids in groups.items():
+        current_series = []
+        power_series = []
+        strain_series = []
+        for row in rows:
+            current_series.append((
+                row["day"],
+                sum(
+                    float(row["links"][bid].get("current_abs_raw", 0.0))
+                    for bid in branch_ids
+                ),
+            ))
+            power_series.append((
+                row["day"],
+                sum(
+                    float(row["links"][bid].get("dissipation_power_proxy", 0.0))
+                    for bid in branch_ids
+                ),
+            ))
+            strain_series.append((
+                row["day"],
+                max(
+                    float(row["links"][bid]["accumulated_strain"])
+                    for bid in branch_ids
+                ),
+            ))
+
+        peak_current = max(current_series, key=lambda x: x[1])
+        peak_power = max(power_series, key=lambda x: x[1])
+        peak_strain = max(strain_series, key=lambda x: x[1])
+        highest_branch = max(
+            branch_ids,
+            key=lambda bid: max(
+                float(row["links"][bid]["accumulated_strain"])
+                for row in rows
+            ),
+        )
+
+        out[pid] = {
+            "branches": list(branch_ids),
+            "branch_count": len(branch_ids),
+            "peak_total_current_abs": {
+                "day": peak_current[0],
+                "value": peak_current[1],
+            },
+            "peak_total_dissipation_power_proxy": {
+                "day": peak_power[0],
+                "value": peak_power[1],
+            },
+            "peak_max_branch_strain": {
+                "day": peak_strain[0],
+                "value": peak_strain[1],
+            },
+            "highest_strain_branch": highest_branch,
+        }
     return out
 
 
@@ -427,10 +527,20 @@ def summarize(rows, relationship_flags=None):
         max(links.items(), key=lambda kv: kv[1]["peak_strain"]["value"])[0]
         if links else None
     )
+    pairs = _summarize_pairs(rows)
+    highest_power_pair = (
+        max(
+            pairs.items(),
+            key=lambda kv: kv[1]["peak_total_dissipation_power_proxy"]["value"],
+        )[0]
+        if pairs else None
+    )
     return {
         "persons": persons,
         "links": links,
+        "pairs": pairs,
         "highest_strain_link": highest,
+        "highest_dissipation_pair": highest_power_pair,
         "highest_load_person": (
             max(
                 persons.items(),

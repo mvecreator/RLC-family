@@ -308,3 +308,27 @@ instantaneous_conductance
 current
 power_vi_proxy = |delta_v * current|
 ```
+
+
+## MULTI-LINK1 branch addressing
+
+PERSON-TIME2 supports multiple branches between the same endpoints.
+
+Every sampled branch exposes:
+
+```text
+link_id
+pair_id
+channel_kind
+parallel_branch_count
+```
+
+When a pair has exactly one branch, legacy `target_link` addressing remains valid.
+
+When a pair has multiple branches, pair-only addressing is rejected as ambiguous and the event must use:
+
+```text
+target_link_id
+```
+
+All branch currents are summed into the PERSON2 node equation.

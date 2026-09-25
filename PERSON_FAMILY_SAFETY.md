@@ -333,3 +333,27 @@ python3 simulator/family_member_load_report.py \
   examples/person_family_timeline.json \
   --out out/member-loads
 ```
+
+
+## MULTI-LINK1 branch and pair summaries
+
+When two people have several parallel channels, PERSON-FAMILY-SAFETY1 keeps accumulated strain independently for each `link_id`.
+
+It also exposes pair-level aggregates:
+
+```text
+branches
+branch_count
+peak_total_current_abs
+peak_total_dissipation_power_proxy
+peak_max_branch_strain
+highest_strain_branch
+```
+
+Incident person load combines parallel branch contributions with:
+
+```math
+1-prod_b(1-x_b)
+```
+
+which preserves the old single-link value exactly and prevents additional channels from artificially diluting stress by averaging.

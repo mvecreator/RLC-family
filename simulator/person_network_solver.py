@@ -73,7 +73,8 @@ def solve_network(scenario):
     nodes=pir["nodes"]
     links=pir["links"]
     nonlinear = [
-        f"{link['from']}->{link['to']}:{link.get('element_type')}"
+        f"{link.get('link_id', link['from'] + '->' + link['to'])}:"
+        f"{link.get('element_type')}"
         for link in links
         if semi.is_nonlinear(link)
     ]
@@ -135,6 +136,10 @@ def solve_network(scenario):
         vb=voltages[index[link["to"]]]
         current=(va-vb)/link["R_link"]
         link_results.append({
+            "link_id":link["link_id"],
+            "pair_id":link["pair_id"],
+            "channel_kind":link.get("channel_kind","generic"),
+            "parallel_branch_count":link.get("parallel_branch_count",1),
             "from":link["from"],
             "to":link["to"],
             "element_type":link.get("element_type","RESISTIVE"),
@@ -173,7 +178,7 @@ def solve_network(scenario):
         "max_person_voltage":max_node["voltage_abs"],
         "phase_span_deg":max(phases)-min(phases) if phases else 0.0,
         "strongest_link":(
-            f"{max_link['from']}->{max_link['to']}" if max_link else None
+            max_link["link_id"] if max_link else None
         ),
         "max_link_current":max_link["current_abs"] if max_link else 0.0,
         "total_link_dissipation_proxy":sum(x["dissipation_proxy"] for x in link_results),
@@ -207,7 +212,7 @@ def solve_network(scenario):
         "scenario_name":scenario.get("название","PERSON2 family"),
         "person_ir":pir,
         "equations":{
-            "node":"Y_person(omega)*V_p + sum((V_p-V_q)/R_pq) = I_p",
+            "node":"Y_person(omega)*V_p + sum_branch((V_p-V_q)/R_branch) = I_p",
             "person_admittance":"1/R_p + j*omega*C_p + 1/(j*omega*L_p)",
             "link_current":"I_pq = (V_p-V_q)/R_pq",
         },

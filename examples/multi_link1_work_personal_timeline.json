@@ -1,0 +1,37 @@
+{
+  "моделирование": {
+    "дней": 10,
+    "шаг_дней": 0.01,
+    "выборка_дней": 0.10
+  },
+  "события": [
+    {
+      "id": "work-pressure",
+      "день": 1,
+      "длительность_дней": 4,
+      "персонаж": "employee",
+      "добавить_возбуждение": 0.35
+    },
+    {
+      "id": "work-gate-open",
+      "день": 1,
+      "длительность_дней": 4,
+      "target_link_id": "employer-employee.work",
+      "gate_set": 0.95
+    },
+    {
+      "id": "work-gate-relief",
+      "день": 5,
+      "длительность_дней": 5,
+      "target_link_id": "employer-employee.work",
+      "gate_set": 0.20
+    },
+    {
+      "id": "personal-channel-improves",
+      "день": 5,
+      "длительность_дней": 5,
+      "target_link_id": "employer-employee.personal",
+      "communication_quality_set": 0.92
+    }
+  ]
+}

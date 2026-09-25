@@ -922,3 +922,8 @@ Adds thermal memory over person load and link dissipation `I^2R`, slow recovery 
 **[LINK-SEMI1 — nonlinear directed and gated relationship links](LINK_SEMI1.md)**
 
 Adds RESISTIVE, DIODE, MOSFET and BREAKDOWN_DIODE relationship elements. Employer→employee is the first MOSFET calibration example, with an explicit external gate such as authority/contract dependency. Nonlinear links run in PERSON-TIME2; the linear PERSON-NET1 solver rejects them.
+
+
+**[MULTI-LINK1 — parallel social channels](MULTI_LINK1.md)**
+
+Upgrades PERSON2 into a multigraph: the same pair of people can carry independent personal, work, financial or other channels, each with its own `link_id`, element type, current, heat, damage, strain and events. Legacy one-link scenarios keep their old keys.

@@ -178,3 +178,18 @@ BREAKDOWN_DIODE
 PERSON-NET1 rejects the solve and directs the caller to PERSON-TIME2.
 
 This avoids silently linearizing directed/gated social-channel hypotheses into an ordinary resistor network.
+
+
+## MULTI-LINK1 parallel resistive branches
+
+PERSON-NET1 supports multiple RESISTIVE branches between the same pair.
+
+Each branch contributes its conductance independently:
+
+```math
+G_{eq} = sum_b 1/R_b.
+```
+
+Every output branch retains its own `link_id`.
+
+If any parallel branch is nonlinear, PERSON-NET1 rejects the solve and the whole network must be evaluated with PERSON-TIME2.

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import itertools
 import math
+import re
 from copy import deepcopy
 
 try:
@@ -48,6 +49,30 @@ def _num(value, name, lo=None, hi=None):
         raise core.ScenarioError(f"{name}: expected >= {lo}")
     if hi is not None and value > hi:
         raise core.ScenarioError(f"{name}: expected <= {hi}")
+    return value
+
+
+
+LINK_ID_RE = re.compile(r"^[A-Za-z0-9._:-]+$")
+
+
+def pair_id(a, b):
+    return "->".join(sorted((str(a), str(b))))
+
+
+def compile_link_id(item, a, b, require_explicit=False):
+    raw = item.get("link_id", item.get("channel_id"))
+    if raw is None:
+        if require_explicit:
+            raise core.ScenarioError(
+                f"parallel links {a}-{b} require explicit link_id"
+            )
+        return pair_id(a, b)
+    value = str(raw).strip()
+    if not value or not LINK_ID_RE.fullmatch(value):
+        raise core.ScenarioError(
+            "link_id must be canonical ASCII [A-Za-z0-9._:-]+"
+        )
     return value
 
 
@@ -324,6 +349,17 @@ def _compile_links(scenario, nodes, cfg):
     raw = scenario.get("связи_персонажей")
     node_ids = {n["id"] for n in nodes}
     links = []
+
+    def finalize_parallel_metadata(items):
+        counts = {}
+        for link in items:
+            counts[link["pair_id"]] = counts.get(link["pair_id"], 0) + 1
+        for link in items:
+            count = counts[link["pair_id"]]
+            link["parallel_branch_count"] = count
+            link["is_parallel_branch"] = count > 1
+        return items
+
     if raw is None:
         global_quality = scenario.get("связь", {}).get(
             "качество_проводника", cfg["default_link_quality"]
@@ -336,12 +372,22 @@ def _compile_links(scenario, nodes, cfg):
                 f"link {a}-{b}",
                 "default-complete-graph",
             )
-            link.update({"from": a, "to": b})
+            pid = pair_id(a, b)
+            link.update({
+                "from": a,
+                "to": b,
+                "pair_id": pid,
+                "link_id": pid,
+                "channel_kind": "generic",
+            })
             links.append(link)
-        return links
+        return finalize_parallel_metadata(links)
+
     if not isinstance(raw, list):
         raise core.ScenarioError("связи_персонажей must be list")
-    seen = set()
+
+    pair_counts = {}
+    validated = []
     for idx, item in enumerate(raw):
         if not isinstance(item, dict):
             raise core.ScenarioError(f"link {idx}: expected object")
@@ -350,19 +396,35 @@ def _compile_links(scenario, nodes, cfg):
         if a not in node_ids or b not in node_ids or a == b:
             raise core.ScenarioError(f"link {idx}: invalid endpoints")
         key = tuple(sorted((a, b)))
-        if key in seen:
-            raise core.ScenarioError(f"duplicate link: {a}-{b}")
-        seen.add(key)
+        pair_counts[key] = pair_counts.get(key, 0) + 1
+        validated.append((idx, item, a, b, key))
+
+    seen_ids = set()
+    for idx, item, a, b, key in validated:
+        multi = pair_counts[key] > 1
+        link_id = compile_link_id(item, a, b, require_explicit=multi)
+        if link_id in seen_ids:
+            raise core.ScenarioError(f"duplicate link_id: {link_id}")
+        seen_ids.add(link_id)
+
         link = compile_link_semantics(
             item,
             cfg["default_link_quality"],
-            f"link {a}-{b}",
+            f"link {link_id}",
             "explicit",
         )
-        link.update({"from": a, "to": b})
+        link.update({
+            "from": a,
+            "to": b,
+            "pair_id": pair_id(a, b),
+            "link_id": link_id,
+            "channel_kind": str(
+                item.get("channel_kind", item.get("channel", "generic"))
+            ).strip() or "generic",
+        })
         links.append(link)
-    return links
 
+    return finalize_parallel_metadata(links)
 
 def compile_person_network(scenario):
     raw = scenario.get("персонажи")
