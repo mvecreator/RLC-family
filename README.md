@@ -942,3 +942,8 @@ Adds small-network signal analysis for repeated observed events, mixed household
 **[PERCEPTION-ID1 — brief-observation identification](PERCEPTION_ID1.md)**
 
 Benchmarks what short RLC response traces can and cannot identify about another PERSON2 node. It separates actual `R,C,L` from prior-selected apparent parameters, measures brief-vs-long identifiability, and tests synthetic policy errors caused by underestimating persistence. It does not infer real people's beliefs or motives.
+
+
+**[RHYTHM-25H1 — per-person intrinsic-day dynamics](RHYTHM_25H1.md)**
+
+Adds an explicit internal cycle period per PERSON2 node. The canonical personal profile uses 25h for the central node and 24h for comparison neighbors. A 25h cycle produces no extra load while free-running; mismatch load appears only under explicit external 24h schedule locking. Person-specific initial accumulated load/heat/debt are independent variables.
