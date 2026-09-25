@@ -25,6 +25,7 @@ try:
     from simulator import recovery_scenarios as recovery_scenarios
     from simulator import neighbor_network as neighbor_network
     from simulator import perception_identification as perception_identification
+    from simulator import unified_engine as unified_engine
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
@@ -34,6 +35,7 @@ except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import recovery_scenarios
     import neighbor_network
     import perception_identification
+    import unified_engine
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -449,6 +451,13 @@ def solve_problem(scenario, problem):
                 "perception_identification requires perception_spec object"
             )
         return perception_identification.analyze(scenario, spec)
+    if ptype == "unified_engine":
+        spec = problem.get("engine_spec")
+        if not isinstance(spec, dict):
+            raise core.ScenarioError(
+                "unified_engine requires engine_spec object"
+            )
+        return unified_engine.run_engine(scenario, spec)
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {

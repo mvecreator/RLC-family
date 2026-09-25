@@ -523,3 +523,38 @@ PERSON-TIME2 and Family Safety expose acoustic provenance.
 ACOUSTIC-INDUCTION-CAL1 defines 16 gates, including H0/HT/HM/HTM synthetic hypothesis separation and exact legacy parity when no acoustic layer is present.
 
 Real retention of M_a requires predictive improvement on held-out observed acoustic data beyond the simpler direct-transmission model.
+
+
+## 20. UNIFIED-ENGINE1
+
+A canonical orchestration façade now composes the merged PERSON2 stack.
+
+Primary invariant:
+
+```text
+one PERSON-TIME2 primary trajectory
+→ reused by Family Safety
+→ reused by Thermal/Recovery
+```
+
+Optional NEIGHBOR-NET1 and PERCEPTION-ID1 projections remain separate model worlds and run only when explicitly requested.
+
+The engine emits:
+- capability manifest;
+- features-present manifest;
+- component versions;
+- input SHA-256 digest;
+- compiled-contract SHA-256 digest;
+- one result bundle.
+
+Canonical examples combine:
+- seven PERSON2 household members;
+- central 25h rhythm;
+- three acoustic wall couplings;
+- five acoustic sources;
+- optional perception analysis;
+- optional neighbor counterfactual analysis.
+
+UNIFIED-ENGINE-CAL1 defines 16 determinism/composition/boundary gates.
+
+No founder/local WSL PASS is claimed for UNIFIED-ENGINE1 until executed.
