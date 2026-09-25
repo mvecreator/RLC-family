@@ -671,3 +671,37 @@ counterfactual continuation / no-relief / desynchronization
 > Модель доказала, что люди координировались против центрального человека.
 
 Intervention marker не переписывает post-events автоматически; снижение post activity должно быть задано наблюдаемыми данными.
+
+
+---
+
+## Короткое наблюдение и PERCEPTION-ID1
+
+Если пользователь предлагает гипотезу вида:
+
+```text
+"кто-то увидел быстрый отклик и решил, что система слабая"
+```
+
+не превращать это в утверждение о мыслях реального человека.
+
+Разделять:
+
+```text
+actual theta = (R,C,L)
+brief observable waveform
+admissible candidate set
+observer prior
+apparent theta_hat
+synthetic policy consequence
+```
+
+Допустимый вывод:
+
+> На коротком synthetic trace C определяется лучше, чем R/L; поэтому разные priors могут выбрать разные R_hat/L_hat.
+
+Недопустимый вывод:
+
+> Реальный человек именно так оценил пользователя и поэтому выбрал конкретную стратегию.
+
+PERCEPTION-ID1 предназначен для проверки идентифицируемости модели и ошибок synthetic observer, а не для mind-reading.
