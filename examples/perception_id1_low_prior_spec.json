@@ -1,0 +1,20 @@
+{
+  "target_person_id": "target",
+  "brief_observation_days": 0.10,
+  "full_observation_days": 2.0,
+  "dt_days": 0.002,
+  "probe": {
+    "duration_days": 0.08,
+    "amplitude": 0.45
+  },
+  "grid_factors": [0.5, 0.7, 0.85, 1.0, 1.2, 1.5, 2.0],
+  "noise_floor_fraction_of_peak": 0.01,
+  "observer_prior": {
+    "R": 0.90,
+    "C": 1.50,
+    "L": 1.50
+  },
+  "repeat_interval_days": 1.0,
+  "repeat_count": 4,
+  "strategy_residual_threshold": 0.20
+}

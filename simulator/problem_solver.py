@@ -24,6 +24,7 @@ try:
     from simulator import thermal_recovery as thermal_recovery
     from simulator import recovery_scenarios as recovery_scenarios
     from simulator import neighbor_network as neighbor_network
+    from simulator import perception_identification as perception_identification
 except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import rlc_family_sim as core
     import person_network_solver as person_net
@@ -32,6 +33,7 @@ except ModuleNotFoundError:  # direct: python3 simulator/problem_solver.py ...
     import thermal_recovery
     import recovery_scenarios
     import neighbor_network
+    import perception_identification
 
 VERSION = "RLC-FAMILY-PROBLEM-0.2"
 
@@ -440,6 +442,13 @@ def solve_problem(scenario, problem):
                 "neighbor_network requires neighbor_spec object"
             )
         return neighbor_network.analyze(scenario, spec)
+    if ptype == "perception_identification":
+        spec = problem.get("perception_spec")
+        if not isinstance(spec, dict):
+            raise core.ScenarioError(
+                "perception_identification requires perception_spec object"
+            )
+        return perception_identification.analyze(scenario, spec)
     if ptype == "diagnose":
         ir, result, env = _run(scenario)
         return {
