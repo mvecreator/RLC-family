@@ -1,0 +1,23 @@
+{
+  "название": "PERCEPTION-ID1 synthetic low-C high-RL target",
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "target",
+      "type": "adult",
+      "source_weight": 1.0,
+      "recovery_inertia": 1.0,
+      "role": {
+        "work_provider": 0.0,
+        "decision_initiative": 0.0,
+        "external_activity": 0.0,
+        "caregiver": 1.0,
+        "domestic_load": 1.0,
+        "recovery_inertia": 1.0
+      }
+    }
+  ]
+}
