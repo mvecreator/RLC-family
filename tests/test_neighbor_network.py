@@ -22,7 +22,7 @@ class NeighborNetTests(unittest.TestCase):
     def test_calibration_suite_passes(self):
         result = cal.suite()
         self.assertTrue(result["all_pass"])
-        self.assertEqual(result["passed"], 12)
+        self.assertEqual(result["passed"], 18)
 
     def test_temporal_alignment_is_not_intent_classifier(self):
         compiled = nn.compile_spec(self.scenario, self.spec)
@@ -74,6 +74,58 @@ class NeighborNetTests(unittest.TestCase):
             sum(e["amplitude"] * e["duration_days"] for e in original),
             sum(e["amplitude"] * e["duration_days"] for e in remapped),
             places=12,
+        )
+
+
+    def test_household_group_input_preserves_total_amplitude(self):
+        scenario = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_scenario.json"
+        )
+        spec = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_spec.json"
+        )
+        compiled = nn.compile_spec(scenario, spec)
+        event = next(
+            e for e in compiled["observed_stimuli"]
+            if e["source_group_id"] == "household2_family3"
+        )
+        timeline = nn.timeline_from_spec(
+            compiled,
+            include_relief=False,
+            stimuli=[event],
+        )
+        expanded = [
+            e for e in timeline["events"]
+            if e["id"].startswith(event["id"])
+        ]
+        self.assertEqual(len(expanded), 3)
+        self.assertAlmostEqual(
+            sum(e["drive_add"] for e in expanded),
+            event["amplitude"],
+            places=12,
+        )
+
+    def test_household_probe_compares_equal_total_input(self):
+        scenario = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_scenario.json"
+        )
+        spec = cal.load_json(
+            ROOT / "examples" / "neighbor_net1_households_spec.json"
+        )
+        result = nn.analyze(scenario, spec)
+        households = result["household_transfer_probe"]["households"]
+        amplitudes = {
+            round(item["total_input_amplitude"], 12)
+            for item in households.values()
+        }
+        self.assertEqual(len(amplitudes), 1)
+        self.assertEqual(
+            set(result["household_topology_effect"]),
+            {
+                "household1_solo",
+                "household2_family3",
+                "household3_couple",
+            },
         )
 
 
