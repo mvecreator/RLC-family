@@ -1,5 +1,39 @@
 # Общая электрическая теория семьи
 
+
+## Текущий исполняемый канон
+
+> Историческое начало README ниже сохраняет исходную сатирическую метафору проекта. Оно **не является текущей схемой PERSON2** и не должно использоваться как автоматическое правило `gender -> R/C/L`.
+
+Текущий executable canon:
+
+```text
+каждый человек = собственный R || C || L узел PERSON2
+роль / recovery / явно заданные параметры -> динамика узла
+gender_prior_strength = 0 допустим и используется в новых канонических сценариях
+геометрия отношений = typed links / parallel channels / nonlinear devices
+время = PERSON-TIME2
+ритм = RHYTHM-25H1
+акустика = ACOUSTIC-INDUCTION1
+нагрузка = PERSON-FAMILY-SAFETY1
+тепло / recovery debt = PERSON-THERM1
+neighbor counterfactuals = NEIGHBOR-NET1
+parameter-identification = PERCEPTION-ID1
+оркестрация = UNIFIED-ENGINE1
+```
+
+Главная точка входа для составных расчётов — [UNIFIED_ENGINE1.md](UNIFIED_ENGINE1.md):
+
+```bash
+python3 simulator/unified_engine.py \
+  examples/acoustic_induction1_households_scenario.json \
+  examples/unified_engine1_spec.json \
+  --out out/unified_engine_result.json
+```
+
+Отдельные solver-модули остаются каноническими компонентами, но новый код, приложения и LLM-интерфейс должны по возможности вызывать единый façade, а не вручную дублировать последовательность расчётов.
+
+
 ## Аннотация
 
 В настоящей работе предлагается минимальная электротехническая модель семейной системы на основе пассивного RLC-контура.
