@@ -430,3 +430,43 @@ Temporal alignment is a signal statistic only. `intent_inferred=false` is explic
 NEIGHBOR-NET-CAL1 defines 20 mechanics/accounting/causal-boundary gates.
 
 Explicit mutual inductance is deferred until it demonstrates value beyond this ordinary-network baseline.
+
+
+## 17. PERCEPTION-ID1
+
+A brief-observation RLC identifiability benchmark is implemented.
+
+The layer separates:
+
+```text
+actual theta = (R,C,L)
+observer-selected theta_hat
+```
+
+from the same synthetic target trace.
+
+The canonical synthetic target is deliberately:
+- lower C than adult nominal;
+- higher R than adult nominal;
+- higher L than adult nominal.
+
+With a short observation window and explicit noise floor, many R/L candidates remain compatible while C is much more constrained.
+
+Two different priors select different apparent models from the same brief trace:
+- low-R/L prior underestimates persistence;
+- high-R/L prior overestimates persistence.
+
+The benchmark then compares residual-state prediction and repeated-input response.
+
+Longer observation collapses the candidate set.
+
+PERCEPTION-ID-CAL1 defines 14 gates.
+
+The output explicitly sets:
+
+```text
+synthetic_ground_truth_known = true
+real_world_belief_inference = false
+```
+
+so identifiability analysis cannot be confused with a claim about the thoughts or motives of real people.
