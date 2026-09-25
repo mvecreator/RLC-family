@@ -775,3 +775,34 @@ u_inductive = M_a * ds/dt
 - что шум адресован слушателю;
 - что источник действует намеренно;
 - что несколько household координируются.
+
+
+---
+
+## Единая точка исполнения UNIFIED-ENGINE1
+
+Для составных PERSON2-сценариев предпочитать:
+
+```text
+human description
+→ explicit scenario assumptions
+→ FamilyScenario / PERSON2 scenario
+→ engine_spec
+→ simulator/unified_engine.py
+→ one result bundle
+→ interpretation
+```
+
+Не запускать повторно PERSON-TIME2 отдельно ради Family Safety и Thermal, если результат уже строится через UNIFIED-ENGINE1.
+
+UNIFIED-ENGINE1:
+- компилирует PERSON2 graph;
+- включает multi-link, nonlinear links и channel coupling;
+- компилирует rhythm/acoustic contract;
+- выполняет один основной PERSON-TIME2 timeline;
+- передаёт тот же trajectory в Family Safety;
+- передаёт Family trajectory в Thermal/Recovery;
+- опционально запускает Neighbor/Perception projections;
+- возвращает input/contract digests и component versions.
+
+Важно: единый движок объединяет расчёты, но не повышает эпистемический статус метафорических состояний. Все causal/intent/clinical boundaries дочерних слоёв сохраняются.
