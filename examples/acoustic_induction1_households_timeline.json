@@ -1,0 +1,56 @@
+{
+  "simulation": {
+    "days": 12,
+    "dt_days": 0.005,
+    "sample_every_days": 0.025
+  },
+  "events": [],
+  "acoustic_sources": [
+    {
+      "id": "family3-argument-1",
+      "source_zone": "household2_family3",
+      "waveform": "pulse",
+      "at_day": 0.8,
+      "duration_days": 0.3,
+      "amplitude": 0.45,
+      "edge_days": 0.02
+    },
+    {
+      "id": "couple-burst-1",
+      "source_zone": "household3_couple",
+      "waveform": "burst",
+      "at_day": 2,
+      "duration_days": 0.28,
+      "amplitude": 0.3,
+      "edge_days": 0.02,
+      "period_days": 0.055
+    },
+    {
+      "id": "family3-argument-2",
+      "source_zone": "household2_family3",
+      "waveform": "pulse",
+      "at_day": 3.35,
+      "duration_days": 0.34,
+      "amplitude": 0.48,
+      "edge_days": 0.018
+    },
+    {
+      "id": "solo-noise-1",
+      "source_zone": "household1_solo",
+      "waveform": "pulse",
+      "at_day": 4.8,
+      "duration_days": 0.18,
+      "amplitude": 0.28,
+      "edge_days": 0.015
+    },
+    {
+      "id": "family3-post-quieter",
+      "source_zone": "household2_family3",
+      "waveform": "pulse",
+      "at_day": 8.2,
+      "duration_days": 0.12,
+      "amplitude": 0.15,
+      "edge_days": 0.018
+    }
+  ]
+}
