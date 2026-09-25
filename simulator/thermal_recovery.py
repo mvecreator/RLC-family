@@ -13,6 +13,11 @@ from __future__ import annotations
 
 import math
 
+try:
+    from simulator import personal_rhythm as rhythm
+except ModuleNotFoundError:
+    import personal_rhythm as rhythm
+
 VERSION = "RLC-FAMILY-THERM1-0.1"
 
 PERSON_HEAT_GAIN = 0.35
@@ -56,8 +61,48 @@ def person_recovery_inertia(scenario, pid):
     return 0.5
 
 
-def person_cooling_capacity(scenario, pid):
-    return clip01(1.0 - person_recovery_inertia(scenario, pid))
+def _person_raw(scenario, pid):
+    for person in scenario.get("персонажи", []):
+        if str(person.get("id")) == str(pid):
+            return person
+    return {}
+
+
+def person_cooling_capacity(scenario, pid, day=0.0):
+    base_inertia = person_recovery_inertia(scenario, pid)
+    person = _person_raw(scenario, pid)
+    try:
+        compiled = rhythm.compile_person_rhythm(
+            person,
+            scenario.get("rhythm_model") or {},
+        )
+        rstate = rhythm.state(compiled, day)
+        effective_inertia = clip01(
+            base_inertia + rstate["recovery_inertia_add"]
+        )
+    except (ValueError, TypeError):
+        effective_inertia = base_inertia
+    return clip01(1.0 - effective_inertia)
+
+
+def initial_person_heat(scenario, pid):
+    person = _person_raw(scenario, pid)
+    return clip01(
+        person.get("initial_heat", INITIAL_PERSON_HEAT)
+    )
+
+
+def initial_person_recovery_debt(scenario, pid):
+    person = _person_raw(scenario, pid)
+    return max(
+        0.0,
+        float(
+            person.get(
+                "initial_recovery_debt",
+                INITIAL_RECOVERY_DEBT,
+            )
+        ),
+    )
 
 
 def link_power_w_proxy(link_row):
@@ -163,10 +208,12 @@ def integrate_thermal(scenario, family_rows):
     link_keys = sorted(family_rows[0]["links"])
 
     person_heat = {
-        pid: INITIAL_PERSON_HEAT for pid in person_ids
+        pid: initial_person_heat(scenario, pid)
+        for pid in person_ids
     }
     person_debt = {
-        pid: INITIAL_RECOVERY_DEBT for pid in person_ids
+        pid: initial_person_recovery_debt(scenario, pid)
+        for pid in person_ids
     }
     link_heat = {
         key: INITIAL_LINK_HEAT for key in link_keys
@@ -188,7 +235,7 @@ def integrate_thermal(scenario, family_rows):
         persons = {}
         for pid in person_ids:
             power = clip01(row["persons"][pid]["combined"])
-            cooling = person_cooling_capacity(scenario, pid)
+            cooling = person_cooling_capacity(scenario, pid, day=day)
             if dt > 0:
                 person_heat[pid] = advance_heat(
                     person_heat[pid],
