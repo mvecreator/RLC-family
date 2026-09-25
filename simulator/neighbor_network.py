@@ -598,6 +598,169 @@ def central_window_metrics(run, compiled, lo, hi):
     }
 
 
+def _central_delta_metrics(run, baseline, compiled, lo, hi):
+    pid = compiled["central_person_id"]
+
+    family_run = {
+        round(float(row["day"]), 10): row
+        for row in run["family"]["trajectory"]
+        if lo <= float(row["day"]) <= hi
+    }
+    family_base = {
+        round(float(row["day"]), 10): row
+        for row in baseline["family"]["trajectory"]
+        if lo <= float(row["day"]) <= hi
+    }
+    thermal_run = {
+        round(float(row["day"]), 10): row
+        for row in run["thermal"]
+        if lo <= float(row["day"]) <= hi
+    }
+    thermal_base = {
+        round(float(row["day"]), 10): row
+        for row in baseline["thermal"]
+        if lo <= float(row["day"]) <= hi
+    }
+
+    shared_days = sorted(set(family_run) & set(family_base))
+    shared_thermal_days = sorted(set(thermal_run) & set(thermal_base))
+    if not shared_days or not shared_thermal_days:
+        raise core.ScenarioError(
+            "household probe has no aligned trajectory rows"
+        )
+
+    load_delta = [
+        (
+            day,
+            float(family_run[day]["persons"][pid]["accumulated_load"])
+            - float(family_base[day]["persons"][pid]["accumulated_load"]),
+        )
+        for day in shared_days
+    ]
+    heat_delta = [
+        (
+            day,
+            float(thermal_run[day]["persons"][pid]["heat"])
+            - float(thermal_base[day]["persons"][pid]["heat"]),
+        )
+        for day in shared_thermal_days
+    ]
+
+    peak_load = max(load_delta, key=lambda x: abs(x[1]))
+    peak_heat = max(heat_delta, key=lambda x: abs(x[1]))
+
+    return {
+        "peak_abs_load_delta": {
+            "day": peak_load[0],
+            "signed_value": peak_load[1],
+            "abs_value": abs(peak_load[1]),
+        },
+        "peak_abs_heat_delta": {
+            "day": peak_heat[0],
+            "signed_value": peak_heat[1],
+            "abs_value": abs(peak_heat[1]),
+        },
+        "final_load_delta": load_delta[-1][1],
+        "final_heat_delta": heat_delta[-1][1],
+    }
+
+
+def household_transfer_probe(scenario, compiled, probe=None):
+    probe = probe or {}
+    at_day = _num(
+        probe.get("at_day", 1.0),
+        "household_probe.at_day",
+        0.0,
+    )
+    duration = _num(
+        probe.get("duration_days", 0.20),
+        "household_probe.duration_days",
+        0.0001,
+    )
+    amplitude = _num(
+        probe.get("amplitude", 0.45),
+        "household_probe.amplitude",
+        0.0,
+    )
+    measure_days = _num(
+        probe.get("measure_window_days", 2.0),
+        "household_probe.measure_window_days",
+        0.05,
+    )
+    if at_day + measure_days > compiled["analysis_end_day"]:
+        raise core.ScenarioError(
+            "household probe window exceeds analysis horizon"
+        )
+
+    baseline = _run(
+        scenario,
+        compiled,
+        include_relief=False,
+        stimuli=[],
+    )
+    out = {}
+
+    for household in compiled["neighbor_households"]:
+        gid = household["group_id"]
+        members = household["members"]
+        equal = 1.0 / len(members)
+        stimulus = {
+            "id": f"household-probe::{gid}",
+            "source_id": None,
+            "source_group_id": gid,
+            "member_weights": {
+                pid: equal for pid in members
+            },
+            "kind": "household_transfer_probe",
+            "at_day": at_day,
+            "duration_days": duration,
+            "amplitude": amplitude,
+            "evidence": "synthetic_probe",
+        }
+        run = _run(
+            scenario,
+            compiled,
+            include_relief=False,
+            stimuli=[stimulus],
+        )
+        out[gid] = {
+            "household_kind": household["household_kind"],
+            "members": list(members),
+            "member_count": len(members),
+            "total_input_amplitude": amplitude,
+            "total_input_exposure_area": amplitude * duration,
+            "member_weights": stimulus["member_weights"],
+            "central_response_delta": _central_delta_metrics(
+                run,
+                baseline,
+                compiled,
+                at_day,
+                at_day + measure_days,
+            ),
+        }
+
+    ranking = sorted(
+        out,
+        key=lambda gid: out[gid]["central_response_delta"][
+            "peak_abs_load_delta"
+        ]["abs_value"],
+        reverse=True,
+    )
+
+    return {
+        "probe": {
+            "at_day": at_day,
+            "duration_days": duration,
+            "amplitude": amplitude,
+            "measure_window_days": measure_days,
+            "equal_total_input_across_households": True,
+        },
+        "households": out,
+        "central_peak_load_delta_ranking": ranking,
+        "ranking_is_descriptive_not_causal": True,
+    }
+
+
 def analyze(scenario, spec):
     compiled = compile_spec(scenario, spec)
     t0 = compiled["intervention"]["at_day"]
@@ -666,6 +829,11 @@ def analyze(scenario, spec):
             "post_prepattern_continuation_counterfactual": continuation_post,
             "pre_desynchronized_counterfactual": actual_pre_desync,
         },
+        "household_transfer_probe": household_transfer_probe(
+            scenario,
+            compiled,
+            spec.get("household_probe"),
+        ),
         "comparisons": {
             "observed_post_vs_pre_event_rate_ratio": (
                 len(post_events) / len(pre_events)
