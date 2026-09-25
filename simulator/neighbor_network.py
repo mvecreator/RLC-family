@@ -1,0 +1,565 @@
+#!/usr/bin/env python3
+"""NEIGHBOR-NET1: observed-event network and intervention-regime analysis.
+
+This layer models:
+- a central PERSON2 node;
+- several neighboring PERSON2 nodes;
+- explicit neighbor-neighbor social links already present in the scenario;
+- observed stimulus events applied to named source neighbors;
+- one external intervention marker;
+- optional explicitly declared central relief impulse;
+- retrospective before/after and counterfactual comparisons.
+
+It does not infer intent, conspiracy, harassment, or intervention causality.
+Temporal alignment is a signal statistic only.
+"""
+
+from __future__ import annotations
+
+import copy
+import json
+from pathlib import Path
+
+from simulator import person_family_safety as family_safety
+from simulator import person_model as pm
+from simulator import person_time_solver as pts
+from simulator import rlc_family_sim as core
+from simulator import thermal_recovery as therm
+
+
+VERSION = "RLC-FAMILY-NEIGHBOR-NET1-0.1"
+
+
+def _num(value, name, lo=None, hi=None):
+    try:
+        value = float(value)
+    except (TypeError, ValueError) as e:
+        raise core.ScenarioError(f"{name} must be number") from e
+    if lo is not None and value < lo:
+        raise core.ScenarioError(f"{name} must be >= {lo}")
+    if hi is not None and value > hi:
+        raise core.ScenarioError(f"{name} must be <= {hi}")
+    return value
+
+
+def compile_spec(scenario, spec):
+    if not isinstance(spec, dict):
+        raise core.ScenarioError("neighbor_net1 spec must be object")
+
+    ir = pm.compile_person_network(scenario)
+    node_ids = {node["id"] for node in ir["nodes"]}
+
+    central = str(spec.get("central_person_id", "")).strip()
+    if central not in node_ids:
+        raise core.ScenarioError(
+            f"neighbor_net1.central_person_id unknown: {central}"
+        )
+
+    raw_neighbors = spec.get("neighbor_ids", [])
+    if not isinstance(raw_neighbors, list) or not raw_neighbors:
+        raise core.ScenarioError("neighbor_ids must be non-empty list")
+    neighbors = [str(x).strip() for x in raw_neighbors]
+    if len(set(neighbors)) != len(neighbors):
+        raise core.ScenarioError("neighbor_ids must be unique")
+    if central in neighbors:
+        raise core.ScenarioError("central person cannot also be neighbor")
+    unknown = [pid for pid in neighbors if pid not in node_ids]
+    if unknown:
+        raise core.ScenarioError(f"unknown neighbor_ids: {unknown}")
+
+    intervention = spec.get("intervention")
+    if not isinstance(intervention, dict):
+        raise core.ScenarioError("intervention object required")
+    intervention_day = _num(
+        intervention.get("at_day"),
+        "intervention.at_day",
+        0.0,
+    )
+    intervention_id = str(
+        intervention.get("id", "external-intervention")
+    ).strip() or "external-intervention"
+
+    window_days = _num(
+        spec.get("window_days", intervention_day),
+        "window_days",
+        0.001,
+    )
+    if intervention_day < window_days:
+        raise core.ScenarioError(
+            "intervention.at_day must be >= window_days"
+        )
+    end_day = intervention_day + window_days
+
+    sync_tolerance = _num(
+        spec.get("sync_tolerance_days", 0.10),
+        "sync_tolerance_days",
+        0.0,
+    )
+
+    stimuli = spec.get("observed_stimuli", [])
+    if not isinstance(stimuli, list):
+        raise core.ScenarioError("observed_stimuli must be list")
+
+    compiled = []
+    seen_ids = set()
+    for idx, item in enumerate(stimuli):
+        if not isinstance(item, dict):
+            raise core.ScenarioError(
+                f"observed_stimuli[{idx}] must be object"
+            )
+        eid = str(item.get("id", f"stimulus-{idx+1}")).strip()
+        if not eid:
+            raise core.ScenarioError(
+                f"observed_stimuli[{idx}].id required"
+            )
+        if eid in seen_ids:
+            raise core.ScenarioError(f"duplicate stimulus id: {eid}")
+        seen_ids.add(eid)
+
+        source = str(item.get("source_id", "")).strip()
+        if source not in neighbors:
+            raise core.ScenarioError(
+                f"{eid}: source_id must be one of neighbor_ids"
+            )
+        at_day = _num(item.get("at_day"), f"{eid}.at_day", 0.0)
+        duration = _num(
+            item.get("duration_days", 0.05),
+            f"{eid}.duration_days",
+            0.0001,
+        )
+        amplitude = _num(
+            item.get("amplitude"),
+            f"{eid}.amplitude",
+            0.0,
+        )
+        if at_day >= end_day:
+            raise core.ScenarioError(
+                f"{eid}: at_day outside analysis horizon"
+            )
+        compiled.append({
+            "id": eid,
+            "source_id": source,
+            "kind": str(item.get("kind", "observed_event")),
+            "at_day": at_day,
+            "duration_days": duration,
+            "amplitude": amplitude,
+            "evidence": str(
+                item.get("evidence", "contemporaneous_observation")
+            ),
+        })
+
+    compiled.sort(key=lambda x: (x["at_day"], x["id"]))
+
+    central_memory_relief = _num(
+        intervention.get("central_memory_relief", 0.0),
+        "intervention.central_memory_relief",
+        0.0,
+        1.0,
+    )
+    central_drive_relief = _num(
+        intervention.get("central_drive_relief", 0.0),
+        "intervention.central_drive_relief",
+        0.0,
+    )
+    relief_duration = _num(
+        intervention.get("relief_duration_days", 0.25),
+        "intervention.relief_duration_days",
+        0.0001,
+    )
+
+    return {
+        "model_version": VERSION,
+        "central_person_id": central,
+        "neighbor_ids": neighbors,
+        "observed_stimuli": compiled,
+        "intervention": {
+            "id": intervention_id,
+            "at_day": intervention_day,
+            "central_memory_relief": central_memory_relief,
+            "central_drive_relief": central_drive_relief,
+            "relief_duration_days": relief_duration,
+        },
+        "window_days": window_days,
+        "analysis_start_day": intervention_day - window_days,
+        "analysis_end_day": end_day,
+        "sync_tolerance_days": sync_tolerance,
+    }
+
+
+def timeline_from_spec(compiled, *, include_relief=True, stimuli=None):
+    stimuli = (
+        compiled["observed_stimuli"]
+        if stimuli is None
+        else stimuli
+    )
+    events = []
+    for item in stimuli:
+        events.append({
+            "id": item["id"],
+            "at_day": item["at_day"],
+            "duration_days": item["duration_days"],
+            "target_person": item["source_id"],
+            "drive_add": item["amplitude"],
+        })
+
+    intervention = compiled["intervention"]
+    if include_relief:
+        if intervention["central_memory_relief"] > 0:
+            events.append({
+                "id": f"{intervention['id']}-memory-relief",
+                "at_day": intervention["at_day"],
+                "duration_days": 0.0,
+                "target_person": compiled["central_person_id"],
+                "memory_impulse": -intervention["central_memory_relief"],
+            })
+        if intervention["central_drive_relief"] > 0:
+            events.append({
+                "id": f"{intervention['id']}-drive-relief",
+                "at_day": intervention["at_day"],
+                "duration_days": intervention["relief_duration_days"],
+                "target_person": compiled["central_person_id"],
+                "drive_add": -intervention["central_drive_relief"],
+            })
+
+    return {
+        "simulation": {
+            "days": compiled["analysis_end_day"],
+            "dt_days": 0.01,
+            "sample_every_days": 0.05,
+        },
+        "events": events,
+    }
+
+
+def _window_events(compiled, lo, hi):
+    return [
+        event for event in compiled["observed_stimuli"]
+        if lo <= event["at_day"] < hi
+    ]
+
+
+def temporal_alignment_index(events, neighbor_ids, tolerance_days):
+    """Fraction of events aligned with another source within tolerance.
+
+    This is a timing statistic. It does not infer communication or intent.
+    """
+    if not events:
+        return 0.0
+    aligned = 0
+    for event in events:
+        hit = any(
+            other["source_id"] != event["source_id"]
+            and abs(other["at_day"] - event["at_day"]) <= tolerance_days
+            for other in events
+        )
+        if hit:
+            aligned += 1
+    return aligned / len(events)
+
+
+def event_metrics(events, neighbor_ids, window_days, tolerance_days):
+    by_source = {pid: 0 for pid in neighbor_ids}
+    amplitude_sum = 0.0
+    exposure_area = 0.0
+    for event in events:
+        by_source[event["source_id"]] += 1
+        amplitude_sum += event["amplitude"]
+        exposure_area += (
+            event["amplitude"] * event["duration_days"]
+        )
+    return {
+        "event_count": len(events),
+        "events_per_day": len(events) / window_days,
+        "mean_amplitude": (
+            amplitude_sum / len(events) if events else 0.0
+        ),
+        "exposure_area": exposure_area,
+        "events_by_source": by_source,
+        "temporal_alignment_index": temporal_alignment_index(
+            events,
+            neighbor_ids,
+            tolerance_days,
+        ),
+        "intent_inferred": False,
+    }
+
+
+def continuation_stimuli(compiled):
+    """Repeat the pre-intervention window once into the post window."""
+    t0 = compiled["intervention"]["at_day"]
+    window = compiled["window_days"]
+    pre_lo = t0 - window
+    pre = _window_events(compiled, pre_lo, t0)
+    post_existing = _window_events(compiled, t0, t0 + window)
+
+    carried = []
+    for event in pre:
+        shifted = copy.deepcopy(event)
+        shifted["id"] = f"cf-continuation-{event['id']}"
+        shifted["at_day"] = event["at_day"] + window
+        carried.append(shifted)
+
+    # Keep the observed pre window, replace only the post window.
+    outside_post = [
+        event for event in compiled["observed_stimuli"]
+        if event["at_day"] < t0
+        or event["at_day"] >= t0 + window
+    ]
+    return sorted(
+        outside_post + carried,
+        key=lambda x: (x["at_day"], x["id"]),
+    )
+
+
+def desynchronized_pre_stimuli(compiled):
+    """Preserve pre-window count/amplitude/duration but spread event times.
+
+    This is a deterministic signal-shape counterfactual, not a claim that
+    observed alignment was intentional.
+    """
+    t0 = compiled["intervention"]["at_day"]
+    window = compiled["window_days"]
+    lo = t0 - window
+    pre = _window_events(compiled, lo, t0)
+    if len(pre) <= 1:
+        return copy.deepcopy(compiled["observed_stimuli"])
+
+    ordered = sorted(pre, key=lambda e: (e["source_id"], e["id"]))
+    gap = window / (len(ordered) + 1)
+    remapped = []
+    for idx, event in enumerate(ordered, start=1):
+        item = copy.deepcopy(event)
+        item["id"] = f"cf-desync-{event['id']}"
+        item["at_day"] = lo + idx * gap
+        remapped.append(item)
+
+    outside = [
+        event for event in compiled["observed_stimuli"]
+        if not (lo <= event["at_day"] < t0)
+    ]
+    return sorted(
+        outside + remapped,
+        key=lambda x: (x["at_day"], x["id"]),
+    )
+
+
+def _run(scenario, compiled, *, include_relief=True, stimuli=None):
+    timeline = timeline_from_spec(
+        compiled,
+        include_relief=include_relief,
+        stimuli=stimuli,
+    )
+    family = family_safety.assess(scenario, timeline)
+    thermal = therm.integrate_thermal(
+        scenario,
+        family["trajectory"],
+    )
+    return {
+        "timeline": timeline,
+        "family": family,
+        "thermal": thermal,
+    }
+
+
+def _nearest(rows, day):
+    return min(rows, key=lambda row: abs(float(row["day"]) - day))
+
+
+def central_window_metrics(run, compiled, lo, hi):
+    pid = compiled["central_person_id"]
+    family_rows = [
+        row for row in run["family"]["trajectory"]
+        if lo <= float(row["day"]) <= hi
+    ]
+    thermal_rows = [
+        row for row in run["thermal"]
+        if lo <= float(row["day"]) <= hi
+    ]
+    if not family_rows or not thermal_rows:
+        raise core.ScenarioError("analysis window has no trajectory rows")
+
+    loads = [
+        (float(row["day"]), row["persons"][pid]["accumulated_load"])
+        for row in family_rows
+    ]
+    heats = [
+        (float(row["day"]), row["persons"][pid]["heat"])
+        for row in thermal_rows
+    ]
+    debts = [
+        (
+            float(row["day"]),
+            row["persons"][pid]["recovery_debt_heat_days"],
+        )
+        for row in thermal_rows
+    ]
+
+    peak_load = max(loads, key=lambda x: x[1])
+    peak_heat = max(heats, key=lambda x: x[1])
+    peak_debt = max(debts, key=lambda x: x[1])
+
+    return {
+        "peak_accumulated_load": {
+            "day": peak_load[0],
+            "value": peak_load[1],
+        },
+        "final_accumulated_load": loads[-1][1],
+        "peak_heat": {
+            "day": peak_heat[0],
+            "value": peak_heat[1],
+        },
+        "final_heat": heats[-1][1],
+        "peak_recovery_debt": {
+            "day": peak_debt[0],
+            "value": peak_debt[1],
+        },
+        "final_recovery_debt": debts[-1][1],
+    }
+
+
+def analyze(scenario, spec):
+    compiled = compile_spec(scenario, spec)
+    t0 = compiled["intervention"]["at_day"]
+    window = compiled["window_days"]
+    pre_lo = t0 - window
+    post_hi = t0 + window
+
+    pre_events = _window_events(compiled, pre_lo, t0)
+    post_events = _window_events(compiled, t0, post_hi)
+
+    actual = _run(scenario, compiled, include_relief=True)
+    no_relief = _run(scenario, compiled, include_relief=False)
+    continuation = _run(
+        scenario,
+        compiled,
+        include_relief=True,
+        stimuli=continuation_stimuli(compiled),
+    )
+    desync = _run(
+        scenario,
+        compiled,
+        include_relief=True,
+        stimuli=desynchronized_pre_stimuli(compiled),
+    )
+
+    actual_pre = central_window_metrics(
+        actual, compiled, pre_lo, t0
+    )
+    actual_post = central_window_metrics(
+        actual, compiled, t0, post_hi
+    )
+    no_relief_post = central_window_metrics(
+        no_relief, compiled, t0, post_hi
+    )
+    continuation_post = central_window_metrics(
+        continuation, compiled, t0, post_hi
+    )
+    actual_pre_desync = central_window_metrics(
+        desync, compiled, pre_lo, t0
+    )
+
+    return {
+        "model_version": VERSION,
+        "central_person_id": compiled["central_person_id"],
+        "neighbor_ids": compiled["neighbor_ids"],
+        "intervention": compiled["intervention"],
+        "event_windows": {
+            "pre": event_metrics(
+                pre_events,
+                compiled["neighbor_ids"],
+                window,
+                compiled["sync_tolerance_days"],
+            ),
+            "post": event_metrics(
+                post_events,
+                compiled["neighbor_ids"],
+                window,
+                compiled["sync_tolerance_days"],
+            ),
+        },
+        "central_response": {
+            "pre_actual": actual_pre,
+            "post_actual": actual_post,
+            "post_no_relief_counterfactual": no_relief_post,
+            "post_prepattern_continuation_counterfactual": continuation_post,
+            "pre_desynchronized_counterfactual": actual_pre_desync,
+        },
+        "comparisons": {
+            "observed_post_vs_pre_event_rate_ratio": (
+                len(post_events) / len(pre_events)
+                if pre_events else None
+            ),
+            "observed_post_vs_pre_exposure_ratio": (
+                event_metrics(
+                    post_events,
+                    compiled["neighbor_ids"],
+                    window,
+                    compiled["sync_tolerance_days"],
+                )["exposure_area"]
+                / event_metrics(
+                    pre_events,
+                    compiled["neighbor_ids"],
+                    window,
+                    compiled["sync_tolerance_days"],
+                )["exposure_area"]
+                if pre_events
+                and event_metrics(
+                    pre_events,
+                    compiled["neighbor_ids"],
+                    window,
+                    compiled["sync_tolerance_days"],
+                )["exposure_area"] > 0
+                else None
+            ),
+            "support_relief_association": {
+                "actual_final_load": actual_post[
+                    "final_accumulated_load"
+                ],
+                "same_stimuli_without_relief_final_load": no_relief_post[
+                    "final_accumulated_load"
+                ],
+            },
+            "post_regime_association": {
+                "actual_final_load": actual_post[
+                    "final_accumulated_load"
+                ],
+                "continued_prepattern_final_load": continuation_post[
+                    "final_accumulated_load"
+                ],
+            },
+            "timing_alignment_effect": {
+                "actual_pre_peak_load": actual_pre[
+                    "peak_accumulated_load"
+                ]["value"],
+                "desynchronized_pre_peak_load": actual_pre_desync[
+                    "peak_accumulated_load"
+                ]["value"],
+            },
+        },
+        "causal_boundary": (
+            "Before/after differences and counterfactual model differences "
+            "do not establish intent or prove that the external intervention "
+            "caused neighbors to change behavior. The model records timing, "
+            "observed-event regimes, and explicitly declared relief effects."
+        ),
+        "intent_inferred": False,
+    }
+
+
+def main():
+    import argparse
+
+    p = argparse.ArgumentParser(description="Run NEIGHBOR-NET1 analysis")
+    p.add_argument("scenario")
+    p.add_argument("spec")
+    args = p.parse_args()
+
+    scenario = json.loads(
+        Path(args.scenario).read_text(encoding="utf-8")
+    )
+    spec = json.loads(Path(args.spec).read_text(encoding="utf-8"))
+    print(json.dumps(analyze(scenario, spec), ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()
