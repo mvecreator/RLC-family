@@ -616,3 +616,58 @@ vs
 Cross-pair coupling между разными парами людей должен использовать явное `allow_cross_pair=true`.
 
 Накопленный LINK-THERM heat/damage пока не является source CHANNEL-COUPLING1. Для этого нужен отдельный THERMAL-FEEDBACK1.
+
+
+---
+
+## Соседские/household сети NEIGHBOR-NET1
+
+Для повторяющихся внешних событий вокруг одного центрального человека использовать `neighbor_network`.
+
+Разделять:
+
+```text
+наблюдаемое событие
+внутренняя структура household
+меж-household связи
+центральный накопительный отклик
+intervention marker
+```
+
+Можно моделировать household как:
+
+```text
+solo
+couple
+couple + adult child
+другая явно заданная группа
+```
+
+Если событие наблюдается на уровне квартиры/household, но неизвестен конкретный человек, использовать `source_group_id`.
+
+Суммарная amplitude не умножается на число жильцов; она распределяется по членам группы с весами, сумма которых равна 1.
+
+В отчёте отдельно показывать:
+
+```text
+event rate / exposure
+temporal alignment
+central accumulated load / heat / recovery debt
+household equal-input probe
+effect of household_internal links
+effect of cross_household_social links
+pre/post intervention association
+counterfactual continuation / no-relief / desynchronization
+```
+
+Нельзя превращать temporal alignment или наличие social links в утверждение о согласованном намерении.
+
+Корректно:
+
+> В модели события имеют более высокую временную согласованность и связанная топология меняет центральный отклик.
+
+Некорректно:
+
+> Модель доказала, что люди координировались против центрального человека.
+
+Intervention marker не переписывает post-events автоматически; снижение post activity должно быть задано наблюдаемыми данными.
