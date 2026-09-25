@@ -159,3 +159,34 @@ Implemented in SIM-0.1:
 5. **SIM-NL1** — piecewise nonlinear child/adolescent I–V curves.
 6. **SIM-DSL1** — compact natural family-language DSL above JSON.
 7. **SIM-PLOT1** — phase, spectrum, reserve, debt, and hysteresis plots.
+
+
+---
+
+## UNIFIED-ENGINE1 entry point
+
+Для новых составных сценариев основной orchestration entry point:
+
+```bash
+python3 simulator/unified_engine.py scenario.json engine_spec.json
+```
+
+Python API:
+
+```python
+from simulator import unified_engine
+
+compiled = unified_engine.compile_engine(scenario, engine_spec)
+result = unified_engine.run_engine(scenario, engine_spec)
+```
+
+UNIFIED-ENGINE1 не заменяет физические/динамические модули. Он гарантирует единый порядок исполнения и повторное использование одной PERSON-TIME2 trajectory для downstream Family Safety и Thermal/Recovery projections.
+
+Через problem_solver доступен:
+
+```json
+{
+  "type": "unified_engine",
+  "engine_spec": {}
+}
+```
