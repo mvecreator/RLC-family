@@ -470,3 +470,28 @@ real_world_belief_inference = false
 ```
 
 so identifiability analysis cannot be confused with a claim about the thoughts or motives of real people.
+
+
+## 18. RHYTHM-25H1
+
+PERSON2 now supports an explicit intrinsic-day period per person.
+
+Canonical reference:
+- central = 25h;
+- comparison neighbors = 24h;
+- external schedule = 24h.
+
+The exact relative drift for 25h vs 24h is about -0.96 external-clock hours per external day, with modulo-phase realignment after 25 external days.
+
+A free-running 25h profile has zero schedule-mismatch load.
+
+Only explicit `schedule_lock` converts phase mismatch into memory-load and recovery-inertia effects.
+
+Person-specific initial conditions are independently supported:
+- initial_accumulated_load;
+- initial_heat;
+- initial_recovery_debt.
+
+The canonical 25h example gives neighboring 24h nodes higher initial states under the label `unknown_prior_state_hypothesis`, without attributing those states to smoking, alcohol, or any other cause.
+
+RHYTHM-25H-CAL1 defines 15 mechanics/backward-compatibility gates.
