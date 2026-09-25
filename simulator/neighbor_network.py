@@ -315,6 +315,38 @@ def compile_spec(scenario, spec):
         0.0001,
     )
 
+    household_probe = household_transfer_probe(
+        scenario,
+        compiled,
+        spec.get("household_probe"),
+    )
+
+    no_internal = copy.deepcopy(scenario)
+    no_internal["связи_персонажей"] = [
+        link
+        for link in no_internal.get("связи_персонажей", [])
+        if link.get("channel_kind") != "household_internal"
+    ]
+    household_probe_no_internal = household_transfer_probe(
+        no_internal,
+        compiled,
+        spec.get("household_probe"),
+    )
+
+    topology_effect = {}
+    for gid, item in household_probe["households"].items():
+        coupled_peak = item["central_response_delta"][
+            "peak_abs_load_delta"
+        ]["abs_value"]
+        uncoupled_peak = household_probe_no_internal["households"][gid][
+            "central_response_delta"
+        ]["peak_abs_load_delta"]["abs_value"]
+        topology_effect[gid] = {
+            "with_internal_links_peak_abs_load_delta": coupled_peak,
+            "without_internal_links_peak_abs_load_delta": uncoupled_peak,
+            "difference": coupled_peak - uncoupled_peak,
+        }
+
     return {
         "model_version": VERSION,
         "central_person_id": central,
@@ -829,11 +861,11 @@ def analyze(scenario, spec):
             "post_prepattern_continuation_counterfactual": continuation_post,
             "pre_desynchronized_counterfactual": actual_pre_desync,
         },
-        "household_transfer_probe": household_transfer_probe(
-            scenario,
-            compiled,
-            spec.get("household_probe"),
+        "household_transfer_probe": household_probe,
+        "household_transfer_probe_without_internal_links": (
+            household_probe_no_internal
         ),
+        "household_topology_effect": topology_effect,
         "comparisons": {
             "observed_post_vs_pre_event_rate_ratio": (
                 len(post_events) / len(pre_events)
