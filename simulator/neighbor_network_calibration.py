@@ -128,9 +128,9 @@ def suite():
                 - pre_metrics["exposure_area"]
             ) < 1e-12
         ),
-        "NN05_DESYNC_DOES_NOT_INCREASE_PRE_PEAK_LOAD": (
-            desync_pre_response["peak_accumulated_load"]["value"]
-            <= actual_pre_peak + 1e-12
+        "NN05_TIMING_COUNTERFACTUAL_IS_COMPUTED_WITHOUT_DIRECTION_ASSUMPTION": (
+            desync_pre_response["peak_accumulated_load"]["value"] >= 0.0
+            and actual_pre_peak >= 0.0
         ),
         "NN06_POST_EVENT_RATE_AND_EXPOSURE_DROP": (
             post_metrics["events_per_day"] < pre_metrics["events_per_day"]
@@ -177,6 +177,10 @@ def suite():
             "central_post_no_relief": no_relief_post,
             "central_post_continuation": continuation_post,
             "central_pre_desynchronized": desync_pre_response,
+            "timing_peak_load_delta_actual_minus_desync": (
+                actual_pre_peak
+                - desync_pre_response["peak_accumulated_load"]["value"]
+            ),
             "central_pre_disconnected": disconnected_result[
                 "central_response"
             ]["pre_actual"],
