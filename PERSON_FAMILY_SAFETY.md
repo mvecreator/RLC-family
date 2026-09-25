@@ -375,3 +375,18 @@ first_active_day
 ```
 
 This is explanatory provenance for the declared simulation rule, not evidence of real-world causality.
+
+
+## RHYTHM-25H1 and initial load
+
+PERSON-FAMILY-SAFETY1 propagates the current rhythm state from PERSON-TIME2.
+
+It also supports person-specific:
+
+```text
+initial_accumulated_load
+```
+
+instead of forcing every person to start from the same PERSON-LOAD1 baseline.
+
+This is independent of intrinsic-day period. A 24h person may start with more accumulated load than a 25h person.
