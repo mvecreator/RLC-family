@@ -55,17 +55,103 @@ def compile_spec(scenario, spec):
             f"neighbor_net1.central_person_id unknown: {central}"
         )
 
-    raw_neighbors = spec.get("neighbor_ids", [])
-    if not isinstance(raw_neighbors, list) or not raw_neighbors:
-        raise core.ScenarioError("neighbor_ids must be non-empty list")
-    neighbors = [str(x).strip() for x in raw_neighbors]
-    if len(set(neighbors)) != len(neighbors):
-        raise core.ScenarioError("neighbor_ids must be unique")
-    if central in neighbors:
-        raise core.ScenarioError("central person cannot also be neighbor")
-    unknown = [pid for pid in neighbors if pid not in node_ids]
-    if unknown:
-        raise core.ScenarioError(f"unknown neighbor_ids: {unknown}")
+    raw_households = spec.get("neighbor_households")
+    households = []
+    member_to_household = {}
+
+    if raw_households is not None:
+        if not isinstance(raw_households, list) or not raw_households:
+            raise core.ScenarioError(
+                "neighbor_households must be non-empty list"
+            )
+        seen_groups = set()
+        for idx, item in enumerate(raw_households):
+            if not isinstance(item, dict):
+                raise core.ScenarioError(
+                    f"neighbor_households[{idx}] must be object"
+                )
+            gid = str(item.get("group_id", "")).strip()
+            if not gid:
+                raise core.ScenarioError(
+                    f"neighbor_households[{idx}].group_id required"
+                )
+            if gid in seen_groups:
+                raise core.ScenarioError(
+                    f"duplicate neighbor household group_id: {gid}"
+                )
+            seen_groups.add(gid)
+
+            members_raw = item.get("members", [])
+            if not isinstance(members_raw, list) or not members_raw:
+                raise core.ScenarioError(
+                    f"{gid}.members must be non-empty list"
+                )
+            members = [str(x).strip() for x in members_raw]
+            if len(set(members)) != len(members):
+                raise core.ScenarioError(
+                    f"{gid}.members must be unique"
+                )
+            if central in members:
+                raise core.ScenarioError(
+                    f"{gid}: central person cannot be household member"
+                )
+            unknown = [pid for pid in members if pid not in node_ids]
+            if unknown:
+                raise core.ScenarioError(
+                    f"{gid}: unknown household members {unknown}"
+                )
+            overlap = [
+                pid for pid in members if pid in member_to_household
+            ]
+            if overlap:
+                raise core.ScenarioError(
+                    f"neighbor household membership overlap: {overlap}"
+                )
+            for pid in members:
+                member_to_household[pid] = gid
+
+            households.append({
+                "group_id": gid,
+                "members": members,
+                "household_kind": str(
+                    item.get("household_kind", "unspecified")
+                ),
+            })
+    else:
+        raw_neighbors = spec.get("neighbor_ids", [])
+        if not isinstance(raw_neighbors, list) or not raw_neighbors:
+            raise core.ScenarioError(
+                "neighbor_ids must be non-empty list when "
+                "neighbor_households is absent"
+            )
+        neighbors = [str(x).strip() for x in raw_neighbors]
+        if len(set(neighbors)) != len(neighbors):
+            raise core.ScenarioError("neighbor_ids must be unique")
+        if central in neighbors:
+            raise core.ScenarioError(
+                "central person cannot also be neighbor"
+            )
+        unknown = [pid for pid in neighbors if pid not in node_ids]
+        if unknown:
+            raise core.ScenarioError(f"unknown neighbor_ids: {unknown}")
+        for pid in neighbors:
+            gid = f"household:{pid}"
+            households.append({
+                "group_id": gid,
+                "members": [pid],
+                "household_kind": "solo",
+            })
+            member_to_household[pid] = gid
+
+    neighbors = [
+        pid
+        for household in households
+        for pid in household["members"]
+    ]
+    household_by_id = {
+        household["group_id"]: household
+        for household in households
+    }
 
     intervention = spec.get("intervention")
     if not isinstance(intervention, dict):
@@ -116,11 +202,71 @@ def compile_spec(scenario, spec):
             raise core.ScenarioError(f"duplicate stimulus id: {eid}")
         seen_ids.add(eid)
 
-        source = str(item.get("source_id", "")).strip()
-        if source not in neighbors:
+        source = item.get("source_id")
+        source_group = item.get(
+            "source_group_id",
+            item.get("source_household_id"),
+        )
+        if source is not None and source_group is not None:
             raise core.ScenarioError(
-                f"{eid}: source_id must be one of neighbor_ids"
+                f"{eid}: use source_id or source_group_id, not both"
             )
+        if source is None and source_group is None:
+            raise core.ScenarioError(
+                f"{eid}: source_id or source_group_id required"
+            )
+
+        source_id = None
+        if source is not None:
+            source_id = str(source).strip()
+            if source_id not in member_to_household:
+                raise core.ScenarioError(
+                    f"{eid}: source_id must be a neighbor household member"
+                )
+            source_group_id = member_to_household[source_id]
+            member_weights = {source_id: 1.0}
+        else:
+            source_group_id = str(source_group).strip()
+            if source_group_id not in household_by_id:
+                raise core.ScenarioError(
+                    f"{eid}: unknown source_group_id {source_group_id}"
+                )
+            members = household_by_id[source_group_id]["members"]
+            raw_weights = item.get("member_weights")
+            if raw_weights is None:
+                equal = 1.0 / len(members)
+                member_weights = {pid: equal for pid in members}
+            else:
+                if not isinstance(raw_weights, dict):
+                    raise core.ScenarioError(
+                        f"{eid}.member_weights must be object"
+                    )
+                extra = [
+                    pid for pid in raw_weights if pid not in members
+                ]
+                if extra:
+                    raise core.ScenarioError(
+                        f"{eid}.member_weights contains non-members {extra}"
+                    )
+                member_weights = {}
+                total = 0.0
+                for pid in members:
+                    weight = _num(
+                        raw_weights.get(pid, 0.0),
+                        f"{eid}.member_weights.{pid}",
+                        0.0,
+                    )
+                    member_weights[pid] = weight
+                    total += weight
+                if total <= 0:
+                    raise core.ScenarioError(
+                        f"{eid}.member_weights total must be > 0"
+                    )
+                member_weights = {
+                    pid: weight / total
+                    for pid, weight in member_weights.items()
+                }
+
         at_day = _num(item.get("at_day"), f"{eid}.at_day", 0.0)
         duration = _num(
             item.get("duration_days", 0.05),
@@ -138,7 +284,9 @@ def compile_spec(scenario, spec):
             )
         compiled.append({
             "id": eid,
-            "source_id": source,
+            "source_id": source_id,
+            "source_group_id": source_group_id,
+            "member_weights": member_weights,
             "kind": str(item.get("kind", "observed_event")),
             "at_day": at_day,
             "duration_days": duration,
@@ -171,6 +319,8 @@ def compile_spec(scenario, spec):
         "model_version": VERSION,
         "central_person_id": central,
         "neighbor_ids": neighbors,
+        "neighbor_households": households,
+        "member_to_household": member_to_household,
         "observed_stimuli": compiled,
         "intervention": {
             "id": intervention_id,
@@ -185,7 +335,6 @@ def compile_spec(scenario, spec):
         "sync_tolerance_days": sync_tolerance,
     }
 
-
 def timeline_from_spec(compiled, *, include_relief=True, stimuli=None):
     stimuli = (
         compiled["observed_stimuli"]
@@ -194,13 +343,24 @@ def timeline_from_spec(compiled, *, include_relief=True, stimuli=None):
     )
     events = []
     for item in stimuli:
-        events.append({
-            "id": item["id"],
-            "at_day": item["at_day"],
-            "duration_days": item["duration_days"],
-            "target_person": item["source_id"],
-            "drive_add": item["amplitude"],
-        })
+        weights = item.get("member_weights") or {
+            item["source_id"]: 1.0
+        }
+        multi = len(weights) > 1
+        for pid, weight in weights.items():
+            if weight <= 0:
+                continue
+            events.append({
+                "id": (
+                    f"{item['id']}::{pid}"
+                    if multi
+                    else item["id"]
+                ),
+                "at_day": item["at_day"],
+                "duration_days": item["duration_days"],
+                "target_person": pid,
+                "drive_add": item["amplitude"] * weight,
+            })
 
     intervention = compiled["intervention"]
     if include_relief:
