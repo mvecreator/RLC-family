@@ -315,37 +315,6 @@ def compile_spec(scenario, spec):
         0.0001,
     )
 
-    household_probe = household_transfer_probe(
-        scenario,
-        compiled,
-        spec.get("household_probe"),
-    )
-
-    no_internal = copy.deepcopy(scenario)
-    no_internal["связи_персонажей"] = [
-        link
-        for link in no_internal.get("связи_персонажей", [])
-        if link.get("channel_kind") != "household_internal"
-    ]
-    household_probe_no_internal = household_transfer_probe(
-        no_internal,
-        compiled,
-        spec.get("household_probe"),
-    )
-
-    topology_effect = {}
-    for gid, item in household_probe["households"].items():
-        coupled_peak = item["central_response_delta"][
-            "peak_abs_load_delta"
-        ]["abs_value"]
-        uncoupled_peak = household_probe_no_internal["households"][gid][
-            "central_response_delta"
-        ]["peak_abs_load_delta"]["abs_value"]
-        topology_effect[gid] = {
-            "with_internal_links_peak_abs_load_delta": coupled_peak,
-            "without_internal_links_peak_abs_load_delta": uncoupled_peak,
-            "difference": coupled_peak - uncoupled_peak,
-        }
 
     return {
         "model_version": VERSION,
@@ -833,6 +802,38 @@ def analyze(scenario, spec):
     actual_pre_desync = central_window_metrics(
         desync, compiled, pre_lo, t0
     )
+
+    household_probe = household_transfer_probe(
+        scenario,
+        compiled,
+        spec.get("household_probe"),
+    )
+
+    no_internal = copy.deepcopy(scenario)
+    no_internal["связи_персонажей"] = [
+        link
+        for link in no_internal.get("связи_персонажей", [])
+        if link.get("channel_kind") != "household_internal"
+    ]
+    household_probe_no_internal = household_transfer_probe(
+        no_internal,
+        compiled,
+        spec.get("household_probe"),
+    )
+
+    topology_effect = {}
+    for gid, item in household_probe["households"].items():
+        coupled_peak = item["central_response_delta"][
+            "peak_abs_load_delta"
+        ]["abs_value"]
+        uncoupled_peak = household_probe_no_internal["households"][gid][
+            "central_response_delta"
+        ]["peak_abs_load_delta"]["abs_value"]
+        topology_effect[gid] = {
+            "with_internal_links_peak_abs_load_delta": coupled_peak,
+            "without_internal_links_peak_abs_load_delta": uncoupled_peak,
+            "difference": coupled_peak - uncoupled_peak,
+        }
 
     return {
         "model_version": VERSION,
