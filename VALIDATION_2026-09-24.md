@@ -495,3 +495,31 @@ Person-specific initial conditions are independently supported:
 The canonical 25h example gives neighboring 24h nodes higher initial states under the label `unknown_prior_state_hypothesis`, without attributing those states to smoking, alcohol, or any other cause.
 
 RHYTHM-25H-CAL1 defines 15 mechanics/backward-compatibility gates.
+
+
+## 19. ACOUSTIC-INDUCTION1
+
+A separate environmental acoustic layer is implemented.
+
+Drive decomposition:
+
+```math
+u_{acoustic}=T s(t)+M_a \dot{s}(t)
+```
+
+T represents direct wall transmission. M_a is an inductive-like derivative coefficient with time units; it is not literal electromagnetic coupling between people.
+
+Supported synthetic source waveforms:
+- constant;
+- step;
+- pulse;
+- sine;
+- burst.
+
+The canonical mixed-household example preserves the geometry where each neighbor household couples acoustically to the central household, without assuming acoustic walls between the neighboring households.
+
+PERSON-TIME2 and Family Safety expose acoustic provenance.
+
+ACOUSTIC-INDUCTION-CAL1 defines 16 gates, including H0/HT/HM/HTM synthetic hypothesis separation and exact legacy parity when no acoustic layer is present.
+
+Real retention of M_a requires predictive improvement on held-out observed acoustic data beyond the simpler direct-transmission model.
