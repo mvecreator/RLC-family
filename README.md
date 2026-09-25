@@ -932,3 +932,8 @@ Upgrades PERSON2 into a multigraph: the same pair of people can carry independen
 **[CHANNEL-COUPLING1 — explicit modulation between channels](CHANNEL_COUPLING1.md)**
 
 Adds declared branch-to-branch modulation on top of MULTI-LINK1. Rules read frozen base source signals such as current, |VI| power, communication quality or MOSFET gate, then simultaneously modify explicit target fields with full provenance. No social coupling is created automatically.
+
+
+**[NEIGHBOR-NET1 — household-aware observed stimulus analysis](NEIGHBOR_NET1.md)**
+
+Adds small-network signal analysis for repeated observed events, mixed household compositions (solo / family3 / couple), direct inter-household links, equal-input topology probes, intervention markers, timing counterfactuals, and central load/heat/recovery response. Timing/correlation are never treated as proof of intent.
