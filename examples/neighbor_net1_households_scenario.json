@@ -1,15 +1,15 @@
 {
   "название": "NEIGHBOR-NET1 household topology: solo vs family3 vs couple",
   "person_model": {
-    "gender_prior_strength": 0.0,
+    "gender_prior_strength": 0,
     "legacy_gender_profile": false
   },
   "персонажи": [
     {
       "id": "central",
       "type": "adult",
-      "source_weight": 1.0,
-      "initial_memory": 0.20,
+      "source_weight": 1,
+      "initial_memory": 0.2,
       "role": {
         "work_provider": 0.65,
         "decision_initiative": 0.65,
@@ -19,40 +19,38 @@
         "recovery_inertia": 0.55
       }
     },
-
     {
       "id": "solo1",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.15,
       "role": {
-        "work_provider": 0.60,
-        "decision_initiative": 0.60,
+        "work_provider": 0.6,
+        "decision_initiative": 0.6,
         "external_activity": 0.55,
-        "caregiver": 0.30,
+        "caregiver": 0.3,
         "domestic_load": 0.35,
-        "recovery_inertia": 0.50
+        "recovery_inertia": 0.5
       }
     },
-
     {
       "id": "fam2_husband",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.15,
       "role": {
-        "work_provider": 0.70,
-        "decision_initiative": 0.60,
+        "work_provider": 0.7,
+        "decision_initiative": 0.6,
         "external_activity": 0.65,
-        "caregiver": 0.40,
+        "caregiver": 0.4,
         "domestic_load": 0.35,
-        "recovery_inertia": 0.50
+        "recovery_inertia": 0.5
       }
     },
     {
       "id": "fam2_wife",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.15,
       "role": {
         "work_provider": 0.55,
@@ -66,48 +64,46 @@
     {
       "id": "fam2_adult_son",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.12,
       "role": {
-        "work_provider": 0.50,
+        "work_provider": 0.5,
         "decision_initiative": 0.55,
-        "external_activity": 0.70,
+        "external_activity": 0.7,
         "caregiver": 0.25,
-        "domestic_load": 0.30,
+        "domestic_load": 0.3,
         "recovery_inertia": 0.42
       }
     },
-
     {
       "id": "couple3_husband",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.15,
       "role": {
         "work_provider": 0.65,
-        "decision_initiative": 0.60,
-        "external_activity": 0.60,
-        "caregiver": 0.40,
-        "domestic_load": 0.40,
-        "recovery_inertia": 0.50
+        "decision_initiative": 0.6,
+        "external_activity": 0.6,
+        "caregiver": 0.4,
+        "domestic_load": 0.4,
+        "recovery_inertia": 0.5
       }
     },
     {
       "id": "couple3_wife",
       "type": "adult",
-      "source_weight": 0.0,
+      "source_weight": 0,
       "initial_memory": 0.15,
       "role": {
         "work_provider": 0.55,
         "decision_initiative": 0.65,
         "external_activity": 0.55,
-        "caregiver": 0.50,
-        "domestic_load": 0.50,
+        "caregiver": 0.5,
+        "domestic_load": 0.5,
         "recovery_inertia": 0.48
       }
     }
   ],
-
   "связи_персонажей": [
     {
       "link_id": "solo1-central.observation",
@@ -116,14 +112,13 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
       "softness": 0.02,
       "reverse_ratio": 0.03
     },
-
     {
       "link_id": "fam2-husband-central.observation",
       "channel_kind": "environmental_observation",
@@ -131,7 +126,7 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
@@ -145,7 +140,7 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
@@ -159,14 +154,13 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
       "softness": 0.02,
       "reverse_ratio": 0.03
     },
-
     {
       "link_id": "couple3-husband-central.observation",
       "channel_kind": "environmental_observation",
@@ -174,7 +168,7 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
@@ -188,14 +182,13 @@
       "to": "central",
       "communication_quality": 0.72,
       "contact_frequency": 0.75,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "DIODE",
       "forward_threshold": 0.02,
       "softness": 0.02,
       "reverse_ratio": 0.03
     },
-
     {
       "link_id": "fam2.spouse",
       "channel_kind": "household_internal",
@@ -214,7 +207,7 @@
       "to": "fam2_adult_son",
       "communication_quality": 0.78,
       "contact_frequency": 0.85,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.06,
       "element_type": "RESISTIVE"
     },
@@ -223,13 +216,12 @@
       "channel_kind": "household_internal",
       "from": "fam2_wife",
       "to": "fam2_adult_son",
-      "communication_quality": 0.80,
+      "communication_quality": 0.8,
       "contact_frequency": 0.88,
-      "availability": 0.90,
+      "availability": 0.9,
       "hostility": 0.05,
       "element_type": "RESISTIVE"
     },
-
     {
       "link_id": "couple3.spouse",
       "channel_kind": "household_internal",
@@ -240,30 +232,64 @@
       "availability": 0.95,
       "hostility": 0.05,
       "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "cross.solo1-fam2-husband",
+      "channel_kind": "cross_household_social",
+      "from": "solo1",
+      "to": "fam2_husband",
+      "communication_quality": 0.78,
+      "contact_frequency": 0.55,
+      "availability": 0.7,
+      "hostility": 0.04,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "cross.fam2-wife-couple3-wife",
+      "channel_kind": "cross_household_social",
+      "from": "fam2_wife",
+      "to": "couple3_wife",
+      "communication_quality": 0.8,
+      "contact_frequency": 0.6,
+      "availability": 0.72,
+      "hostility": 0.04,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "cross.solo1-couple3-husband",
+      "channel_kind": "cross_household_social",
+      "from": "solo1",
+      "to": "couple3_husband",
+      "communication_quality": 0.76,
+      "contact_frequency": 0.5,
+      "availability": 0.68,
+      "hostility": 0.05,
+      "element_type": "RESISTIVE"
     }
   ],
-
   "отношения": {
-    "напряженность": 0.20,
-    "частота_событий": 1.0,
+    "напряженность": 0.2,
+    "частота_событий": 1,
     "накопленная_память": 0.15
   },
   "связь": {
-    "качество_проводника": 0.80,
-    "усиление_эмоций": 1.0,
-    "фильтр_критического_мышления": 0.80,
-    "усиление_антенны": 0.20,
+    "качество_проводника": 0.8,
+    "усиление_эмоций": 1,
+    "фильтр_критического_мышления": 0.8,
+    "усиление_антенны": 0.2,
     "внешний_фон": 0.05,
-    "сброс_через_антенну": 0.30,
-    "согласование_собеседника": 0.80
+    "сброс_через_антенну": 0.3,
+    "согласование_собеседника": 0.8
   },
   "финансы": {
-    "доходы_в_месяц": [1.0],
-    "ипотека_в_месяц": 0.0,
+    "доходы_в_месяц": [
+      1
+    ],
+    "ипотека_в_месяц": 0,
     "базовые_расходы_в_месяц": 0.55,
     "прочие_расходы_в_месяц": 0.15,
-    "резерв": 4.0,
-    "долг_по_ипотеке": 0.0,
-    "ставка_годовая": 0.0
+    "резерв": 4,
+    "долг_по_ипотеке": 0,
+    "ставка_годовая": 0
   }
 }
