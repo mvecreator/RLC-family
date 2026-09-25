@@ -277,6 +277,23 @@ def suite():
                 )
             )
         ),
+        "NN19_CROSS_HOUSEHOLD_SOCIAL_LINKS_ARE_EXPLICIT": (
+            sum(
+                1
+                for link in household_scenario["связи_персонажей"]
+                if link.get("channel_kind") == "cross_household_social"
+            ) == 3
+        ),
+        "NN20_CROSS_HOUSEHOLD_TOPOLOGY_EFFECT_IS_MEASURED_WITHOUT_SIGN_ASSUMPTION": (
+            math.isfinite(
+                household_result["cross_household_social_effect"][
+                    "difference"
+                ]
+            )
+            and household_result["cross_household_social_effect"][
+                "direction_precommitted"
+            ] is False
+        ),
     }
 
     return {
@@ -309,6 +326,9 @@ def suite():
             ],
             "household_topology_effect": household_result[
                 "household_topology_effect"
+            ],
+            "cross_household_social_effect": household_result[
+                "cross_household_social_effect"
             ],
         },
         "checks": checks,
