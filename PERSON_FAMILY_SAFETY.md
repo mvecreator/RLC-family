@@ -390,3 +390,10 @@ initial_accumulated_load
 instead of forcing every person to start from the same PERSON-LOAD1 baseline.
 
 This is independent of intrinsic-day period. A 24h person may start with more accumulated load than a 25h person.
+
+
+## ACOUSTIC-INDUCTION1 forcing exposure
+
+Family Safety includes `acoustic_total_drive` in forcing exposure while preserving event/acoustic provenance separately.
+
+This allows repeated audible environmental input to contribute to accumulated-load dynamics without inventing a direct social interaction link.
