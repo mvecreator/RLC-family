@@ -937,3 +937,8 @@ Adds declared branch-to-branch modulation on top of MULTI-LINK1. Rules read froz
 **[NEIGHBOR-NET1 — household-aware observed stimulus analysis](NEIGHBOR_NET1.md)**
 
 Adds small-network signal analysis for repeated observed events, mixed household compositions (solo / family3 / couple), direct inter-household links, equal-input topology probes, intervention markers, timing counterfactuals, and central load/heat/recovery response. Timing/correlation are never treated as proof of intent.
+
+
+**[PERCEPTION-ID1 — brief-observation identification](PERCEPTION_ID1.md)**
+
+Benchmarks what short RLC response traces can and cannot identify about another PERSON2 node. It separates actual `R,C,L` from prior-selected apparent parameters, measures brief-vs-long identifiability, and tests synthetic policy errors caused by underestimating persistence. It does not infer real people's beliefs or motives.
