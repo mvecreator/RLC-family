@@ -66,6 +66,15 @@ def suite():
         matched24_free_scenario, timeline
     )
 
+
+    legacy_scenario = copy.deepcopy(matched24_free_scenario)
+    legacy_scenario.pop("rhythm_model", None)
+    for person in legacy_scenario["персонажи"]:
+        person.pop("rhythm", None)
+    legacy = pts.simulate_person_timeline(
+        legacy_scenario, timeline
+    )
+
     compiled = pm.compile_person_network(scenario)
     by_id = {node["id"]: node for node in compiled["nodes"]}
     central_rhythm = by_id["central"]["rhythm"]
@@ -95,6 +104,11 @@ def suite():
     )
     final_24_free = _node(
         matched24_free["samples"][-1], "central"
+    )
+
+
+    final_legacy = _node(
+        legacy["samples"][-1], "central"
     )
 
     checks = {
@@ -194,6 +208,12 @@ def suite():
             ) < 1e-12
             and "schedule_mismatch_load"
             in first_family["central"]["rhythm"]
+        ),
+        "R25_15_LEGACY_NO_RHYTHM_MATCHES_EXPLICIT_24H_FREE": (
+            abs(final_legacy["memory"] - final_24_free["memory"])
+            < 1e-12
+            and abs(final_legacy["voltage"] - final_24_free["voltage"])
+            < 1e-12
         ),
     }
 
