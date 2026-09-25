@@ -1,0 +1,116 @@
+{
+  "название": "CHANNEL-COUPLING1: work and personal feedback",
+  "person_model": {
+    "gender_prior_strength": 0.0,
+    "legacy_gender_profile": false
+  },
+  "персонажи": [
+    {
+      "id": "employer",
+      "type": "adult",
+      "gender": "female",
+      "source_weight": 0.30,
+      "role": {
+        "work_provider": 0.95,
+        "decision_initiative": 0.95,
+        "external_activity": 0.90,
+        "caregiver": 0.10,
+        "domestic_load": 0.10,
+        "recovery_inertia": 0.50
+      }
+    },
+    {
+      "id": "employee",
+      "type": "adult",
+      "gender": "male",
+      "source_weight": 0.70,
+      "role": {
+        "work_provider": 0.85,
+        "decision_initiative": 0.55,
+        "external_activity": 0.80,
+        "caregiver": 0.35,
+        "domestic_load": 0.35,
+        "recovery_inertia": 0.55
+      }
+    }
+  ],
+  "связи_персонажей": [
+    {
+      "link_id": "employer-employee.personal",
+      "channel_kind": "personal",
+      "from": "employer",
+      "to": "employee",
+      "communication_quality": 0.82,
+      "contact_frequency": 0.35,
+      "availability": 0.65,
+      "hostility": 0.04,
+      "element_type": "RESISTIVE"
+    },
+    {
+      "link_id": "employer-employee.work",
+      "channel_kind": "institutional_work",
+      "from": "employer",
+      "to": "employee",
+      "communication_quality": 0.78,
+      "contact_frequency": 0.95,
+      "availability": 0.95,
+      "hostility": 0.10,
+      "element_type": "MOSFET",
+      "gate": 0.85,
+      "gate_threshold": 0.50,
+      "gate_softness": 0.08,
+      "off_ratio": 0.02,
+      "reverse_ratio": 0.15,
+      "gate_semantics": "authority_contract_dependency"
+    }
+  ],
+  "channel_couplings": [
+    {
+      "coupling_id": "work-power-degrades-personal-quality",
+      "source_link_id": "employer-employee.work",
+      "source_signal": "power",
+      "source_scale": 0.020,
+      "threshold": 0.20,
+      "target_link_id": "employer-employee.personal",
+      "target_field": "communication_quality",
+      "gain": -0.30,
+      "max_abs_effect": 0.25,
+      "description": "Hypothesis: sustained high work-channel dissipation can spill into personal communication quality."
+    },
+    {
+      "coupling_id": "personal-quality-opens-work-reverse",
+      "source_link_id": "employer-employee.personal",
+      "source_signal": "communication_quality",
+      "source_scale": 1.0,
+      "threshold": 0.70,
+      "target_link_id": "employer-employee.work",
+      "target_field": "reverse_ratio",
+      "gain": 0.30,
+      "max_abs_effect": 0.10,
+      "description": "Hypothesis: a strong personal channel can modestly increase reverse transmission in the work channel."
+    }
+  ],
+  "отношения": {
+    "напряженность": 0.25,
+    "частота_событий": 1.0,
+    "накопленная_память": 0.15
+  },
+  "связь": {
+    "качество_проводника": 0.80,
+    "усиление_эмоций": 1.0,
+    "фильтр_критического_мышления": 0.80,
+    "усиление_антенны": 0.20,
+    "внешний_фон": 0.10,
+    "сброс_через_антенну": 0.30,
+    "согласование_собеседника": 0.80
+  },
+  "финансы": {
+    "доходы_в_месяц": [1.0],
+    "ипотека_в_месяц": 0.0,
+    "базовые_расходы_в_месяц": 0.55,
+    "прочие_расходы_в_месяц": 0.15,
+    "резерв": 4.0,
+    "долг_по_ипотеке": 0.0,
+    "ставка_годовая": 0.0
+  }
+}

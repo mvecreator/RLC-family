@@ -14,12 +14,14 @@ try:
     from simulator import person_model as pm
     from simulator import person_network_solver as pnet
     from simulator import link_semiconductor as semi
+    from simulator import channel_coupling as cc
     from simulator import rlc_family_sim as core
     from simulator import time_solver as legacy_time
 except ModuleNotFoundError:
     import person_model as pm
     import person_network_solver as pnet
     import link_semiconductor as semi
+    import channel_coupling as cc
     import rlc_family_sim as core
     import time_solver as legacy_time
 
@@ -374,6 +376,18 @@ def _network_at(base_scenario, base_ir, events, t):
     return nodes, links, person_drive
 
 
+def _apply_channel_couplings(base_ir, links, voltages, index):
+    rules = base_ir.get("channel_couplings", [])
+    return cc.apply_couplings(
+        links,
+        voltages,
+        index,
+        rules,
+        semi,
+        pm.refresh_link_semantics,
+    )
+
+
 def _unpack(state, n):
     v = state[:n]
     il = state[n:2*n]
@@ -392,6 +406,9 @@ def derivatives(t, state, scenario, base_ir, events, cfg, shares):
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
     index = {node["id"]: i for i, node in enumerate(nodes)}
+    links, _coupling_effects = _apply_channel_couplings(
+        base_ir, links, v, index
+    )
 
     finance, fin_stress, income, load = _finance_state(scenario, reserve)
     global_ir = core.compile_scenario(scenario)
@@ -514,6 +531,9 @@ def _sample(t, state, scenario, base_ir, events, cfg):
     v, il, mem, reserve, debt = _unpack(state, n)
     nodes, links, person_drive = _network_at(scenario, base_ir, events, t)
     index = {node["id"]: i for i, node in enumerate(nodes)}
+    links, coupling_effects = _apply_channel_couplings(
+        base_ir, links, v, index
+    )
     finance, fin_stress, income, load = _finance_state(scenario, reserve)
 
     node_rows = []
@@ -548,6 +568,7 @@ def _sample(t, state, scenario, base_ir, events, cfg):
             "nonlinear": bool(link.get("nonlinear", False)),
             "gate": link.get("gate"),
             "gate_semantics": link.get("gate_semantics"),
+            "reverse_ratio": link.get("reverse_ratio"),
             "delta_v": delta_v,
             "instantaneous_conductance": semi.conductance(link, delta_v),
             "power_vi_proxy": semi.power(link, v[i], v[j]),
@@ -578,6 +599,7 @@ def _sample(t, state, scenario, base_ir, events, cfg):
         "monthly_income_equivalent": income,
         "monthly_load_equivalent": load,
         "active_events": [e["id"] for e in events if _active(e, t)],
+        "channel_coupling_effects": coupling_effects,
     }
 
 
@@ -753,6 +775,7 @@ def simulate_person_timeline(scenario, timeline):
         "equations": [
             "C_p dv_p/dt = u_p(t) - v_p/R_p - i_L,p - sum(I_branch)",
             "L_p di_L,p/dt = v_p",
+            "channel coupling = simultaneous base-read source modulation before branch current evaluation",
             "dm_p/dt = local_excitation + link_stress + financial_stress - recovery",
             "dReserve/dt = (income-load)/days_per_month + impulses",
             "dDebt/dt = annual_rate/365*Debt - mortgage/days_per_month",
@@ -765,6 +788,7 @@ def simulate_person_timeline(scenario, timeline):
             "steps": steps,
         },
         "events": events,
+        "channel_couplings": base_ir.get("channel_couplings", []),
         "samples": samples,
         "summary": summary,
         "family_interpretation": interpret(summary),
@@ -823,7 +847,8 @@ def write_outputs(out, result):
     node_rows = [",".join(node_header)]
     link_header = [
         "day", "link_id", "pair_id", "channel_kind",
-        "from", "to", "quality", "R_link", "current", "current_abs",
+        "from", "to", "element_type", "gate", "reverse_ratio",
+        "quality", "R_link", "current", "current_abs",
     ]
     link_rows = [",".join(link_header)]
 
@@ -839,8 +864,11 @@ def write_outputs(out, result):
             link_rows.append(",".join(str(x) for x in [
                 day, link["link_id"], link["pair_id"],
                 link.get("channel_kind", "generic"),
-                link["from"], link["to"], link["quality"],
-                link["R_link"], link["current"], link["current_abs"],
+                link["from"], link["to"],
+                link.get("element_type", "RESISTIVE"),
+                link.get("gate"), link.get("reverse_ratio"),
+                link["quality"], link["R_link"],
+                link["current"], link["current_abs"],
             ]))
 
     (out / "person_nodes.csv").write_text(

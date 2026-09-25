@@ -394,3 +394,14 @@ work channel: OVERHEATED
 ```
 
 Pair-level total dissipation is summarized in PERSON-FAMILY-SAFETY1, while the thermal state itself remains branch-specific.
+
+
+## CHANNEL-COUPLING1 and thermal order
+
+LINK-THERM1 receives branch current/power **after** CHANNEL-COUPLING1 has modified the branch for that PERSON-TIME2 instant.
+
+Therefore thermal post-processing sees the coupled trajectory.
+
+However thermal heat/damage are not fed back into PERSON-TIME2 yet.
+
+That future feedback requires the separate THERMAL-FEEDBACK1 gate.

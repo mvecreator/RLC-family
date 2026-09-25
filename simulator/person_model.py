@@ -11,9 +11,11 @@ from copy import deepcopy
 try:
     from simulator import rlc_family_sim as core
     from simulator import link_semiconductor as semi
+    from simulator import channel_coupling as cc
 except ModuleNotFoundError:
     import rlc_family_sim as core
     import link_semiconductor as semi
+    import channel_coupling as cc
 
 VERSION = "RLC-FAMILY-PERSON2-0.1"
 
@@ -443,12 +445,17 @@ def compile_person_network(scenario):
     if len(set(ids)) != len(ids):
         raise core.ScenarioError("person ids must be unique")
     links = _compile_links(scenario, nodes, cfg)
+    try:
+        channel_couplings = cc.compile_couplings(scenario, links)
+    except ValueError as e:
+        raise core.ScenarioError(f"channel_couplings: {e}") from e
     return {
         "model_version": VERSION,
         "mode": "PERSON2",
         "config": cfg,
         "nodes": nodes,
         "links": links,
+        "channel_couplings": channel_couplings,
     }
 
 
